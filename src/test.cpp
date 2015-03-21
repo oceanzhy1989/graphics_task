@@ -17,7 +17,7 @@ void main()
 	//Vector4 xx=cross(nz,nx);
 
 	Vector4 axis(1,1,1);
-	Matrix4 m(Mat::IDENTITY);
+	Matrix4 m(IDENTITY);
 
 	m.rotateAxis(axis,2*pi/3);
 

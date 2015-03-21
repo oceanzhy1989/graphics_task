@@ -2,228 +2,121 @@
 #include <string.h>
 #include "utils.h"
 
-//vect& cross(vect x, vect y)
-//{
-//	double x1=x[0],x2=x[1],x3=x[2];
-//	double y1=y[0],y2=y[1],y3=y[2];
-//
-//	vect temp;
-//	temp[0]=x2*y3-x3*y2;
-//	temp[1]=x3*y1-x1*y3;
-//	temp[2]=x1*y2-x2*y1;
-//	return temp;
-//};
-//
-//GLvector& cross(GLvector x,GLvector y)
-//{
-//	GLvector tmp;
-//	memcpy(tmp.a, cross(x.a,y.a),sizeof(vect));
-//	return tmp;
-//}
-//
-//double dot(vect x,vect y)
-//{
-//	double x1=x[0],x2=x[1],x3=x[2];
-//	double y1=y[0],y2=y[1],y3=y[2];
-//
-//	return x1*y1+x2*y2+x3*y3;
-//};
-//
-//double dot(GLvector x,GLvector y)
-//{
-//	return dot(x.a,y.a);
-//	//return x.a[0]*y.a[0]+x.a[1]*y.a[1]+x.a[2]*y.a[2];
-//}
-//
-//vect& unitof(vect v)
-//{
-//	vect temp;
-//	double l=sqrt(dot(v,v));
-//	for(int i=0;i<3;i++) temp[i]=v[i]/l;
-//	return temp;
-//}
-//
-//GLvector& unitof(GLvector v)
-//{
-//	GLvector tmp;
-//	double l=sqrt(dot(v,v));
-//	for(int i=0;i<3;i++) tmp.a[i]=v.a[i]/l;
-//	return tmp;
-//}
-//
-//vect& mul(const vect& v, double c)
-//{
-//	vect temp;
-//	for(int i=0;i<3;i++) temp[i]=v[i]*c;
-//	return temp;
-//}
-//vect& plus(const vect& v1, const vect& v2)
-//{
-//	vect temp;
-//	for(int i=0;i<3;i++) temp[i]=v1[i]+v2[i];
-//	return temp;
-//}
-//
-//
-//quat& operator *(const double A,const quat& X)
-//{
-//	quat temp;
-//	temp.c=X.c*A;
-//	for(int i=0;i<3;i++) temp.v[i]=A*X.v[i];
-//	return temp;
-//}
-//
-//quat& operator *(quat X,quat Y)
-//{
-//	
-//	quat temp,q;
-//	vect vtemp[3];
-//
-//	memcpy(vtemp[0],cross(X.v,Y.v),sizeof(vect));
-//	
-//	for(int i=0;i<3;i++) 
-//	{
-//		vtemp[1][i]=Y.c*X.v[i];
-//		vtemp[2][i]=X.c*Y.v[i];
-//	}
-//	for(int i=0;i<3;i++) temp.v[i]=vtemp[0][i]+vtemp[1][i]+vtemp[2][i];
-//	
-//	temp.c=X.c*Y.c-dot(X.v,Y.v);
-//	return temp;
-//}
-//
-//quat& operator /(const quat& X,const double A)
-//{
-//	quat temp;
-//	temp.c=X.c/A;
-//	for(int i=0;i<3;i++) temp.v[i]=X.v[i]/A;
-//
-//	return temp;
-//}
-//
-//quat& operator +(const quat& X,const quat& Y)
-//{
-//	quat temp;
-//	temp.c=X.c+Y.c;
-//	for(int i=0;i<3;i++) temp.v[i]=X.v[i]+Y.v[i];
-//	
-//	return temp;
-//}
-//
-//quat& operator -(const quat& X,const quat& Y)
-//{
-//	quat temp;
-//	temp.c=X.c-Y.c;
-//	for(int i=0;i<3;i++) temp.v[i]=X.v[i]-Y.v[i];
-//	return temp;
-//}
-//quat& conj(const quat& p)
-//{
-//	quat temp;
-//	temp.c=p.c;
-//	for(int i=0;i<3;i++) temp.v[i]=-p.v[i];
-//	return temp;
-//}
-//double norm(quat p)
-//{
-//	return dot(p.v,p.v)+p.c*p.c;
-//}
-//
-//quat& inv(quat p)
-//{
-//	double l=norm(p);
-//	quat temp=conj(p);
-//	temp.c/=l;
-//	for(int i=0;i<3;i++) temp.v[i]/=l;
-//	return temp;
-//}
-//
-//vect& rotate(const vect v,int dx,int dy,int speed)
-//{
-//	double th=-(double)dx/(double)speed,w=-(double)dy/(double)speed;
-//	vect n1={0,0,1};
-//	vect n2;
-//	quat q0,q,qr;
-//
-//	memcpy(q0.v,v,sizeof(vect));
-//	q0.c=0;
-//	
-//	for(int i=0;i<3;i++) qr.v[i]=n1[i]*sin(th);
-//	qr.c=cos(th);
-//	
-//	q=qr*q0*inv(qr);
-//
-//	memcpy(n2,cross(q.v,n1),sizeof(vect));
-//	unitof(n2);
-//	for(int i=0;i<3;i++) qr.v[i]=n2[i]*sin(w);
-//	qr.c=cos(w);
-//	q=qr*q*inv(qr);
-//
-//	return q.v;
-//}
-//
-//GLvector& rotate(const GLvector v,int dx,int dy,int speed)
-//{
-//	GLvector tmp;
-//
-//	memcpy(tmp.a, rotate(v.a,dx,dy,speed), sizeof(vect));
-//
-//	return tmp;
-//}
-//
-//vect& rotate(const vect v,double th,double w)
-//{
-//	vect n1={0,0,1};
-//	vect n2;
-//	quat q0,q,qr;
-//
-//	w/=-2;th/=-2;
-//
-//	memcpy(q0.v,v,sizeof(vect));
-//	q0.c=0;
-//	
-//	for(int i=0;i<3;i++) qr.v[i]=n1[i]*sin(th);
-//	qr.c=cos(th);
-//	
-//	q=qr*q0*inv(qr);
-//
-//	memcpy(n2,cross(q.v,n1),sizeof(vect));
-//	unitof(n2);
-//	for(int i=0;i<3;i++) qr.v[i]=n2[i]*sin(w);
-//	qr.c=cos(w);
-//	q=qr*q*inv(qr);
-//
-//
-//
-//	return q.v;
-//}
-//
-//GLvector& rotate(const GLvector v,double th,double w)
-//{
-//	GLvector tmp;
-//
-//	memcpy(tmp.a, rotate(v.a,th,w), sizeof(vect));
-//
-//	return tmp;
-//}
-//
-//GLvector& operator +(const GLvector X,const GLvector Y)
-//{
-//	GLvector temp;
-//	for(int i=0;i<3;i++) temp.a[i]=X.a[i]+Y.a[i];
-//	return temp;
-//}
-//
-//GLvector& operator -(const GLvector X,const GLvector Y)
-//{
-//	GLvector temp;
-//	for(int i=0;i<3;i++) temp.a[i]=X.a[i]-Y.a[i];
-//	return temp;
-//}
-//GLvector& operator *(const double A,const GLvector X)
-//{
-//	GLvector temp;
-//	for(int i=0;i<3;i++) temp.a[i]=X.a[i]*A;
-//	return temp;
-//}
+const Vector4 nz(0,0,1);
 
+Camera::Camera(double Screen_z, double ScreenWidth, double ScreenHeight, double FocalLength)
+{
+	this->screen_z=Screen_z;
+	this->screenWidth=ScreenWidth;
+	this->screenHeight=ScreenHeight;
+	this->focalLength=FocalLength;
+
+	m_ModelViewMatrix=new Matrix4;
+	m_ProjectionMatrix=new Matrix4;
+	memset(m_ProjectionMatrix,0,16*sizeof(double));
+	update();
+}
+
+Camera::~Camera()
+{
+	if(m_ModelViewMatrix)
+		delete m_ModelViewMatrix;
+	if(m_ProjectionMatrix)
+		delete m_ProjectionMatrix;
+}
+
+void Camera::update()
+{
+	Vector4 minusT=-getPosition();
+	*m_ModelViewMatrix=m_CameraMatrix.getRotatePart().T()*Matrix4(TRANSLATE,minusT.a[0],minusT.a[1],minusT.a[2]);
+
+	double z0=screen_z-focalLength;
+
+	m_ProjectionMatrix->set(0,0,focalLength);
+	m_ProjectionMatrix->set(1,1,focalLength);
+	m_ProjectionMatrix->set(2,2,screen_z);
+	m_ProjectionMatrix->set(3,2,1);
+	m_ProjectionMatrix->set(2,3,-z0*screen_z);
+	m_ProjectionMatrix->set(3,3,-z0);
+
+	//*m_ProjectionMatrix=(*m_ProjectionMatrix)*(*m_ModelViewMatrix);//总的投影矩阵
+
+}
+
+Vector4 Camera::getPosition()
+{
+	return m_CameraMatrix.getAxis(3);
+}
+
+void Camera::setPosition(const Vector4 &pos)
+{
+	m_CameraMatrix.setAxis(3,pos);
+	update();
+}
+
+Vector4 Camera::getFacingDirection()
+{
+	return m_CameraMatrix.getAxis(2);
+}
+
+const Matrix4 *Camera::getModelViewMatrix()
+{
+	return this->m_ModelViewMatrix;
+}
+
+const Matrix4 *Camera::getProjectionMatrix()
+{
+	return this->m_ProjectionMatrix;
+}
+
+void Camera::pitch(double rad)
+{
+	m_CameraMatrix.pitch(rad);
+	update();
+}
+
+void Camera::yaw(double rad)
+{
+	m_CameraMatrix.yaw(rad);
+	update();
+}
+
+void Camera::roll(double rad)
+{
+	m_CameraMatrix.roll(rad);
+	update();
+}
+
+void Camera::drawBack(double z)
+{
+	this->screen_z-=z;
+	update();
+}
+
+void Camera::goForward(double z)
+{
+	this->screen_z+=z;
+	update();
+}
+
+void Camera::rotateByTarget(double rad, const Vector4 *targetPoint, const Vector4 *axis)
+{
+	Vector4 pos=m_CameraMatrix.getAxis(3);
+
+
+	const Vector4 *sz_targetpoint=targetPoint? targetPoint:&pos;
+	const Vector4 *sz_axis=axis? axis:&nz;
+
+	Vector4 tmpPos=pos-*sz_targetpoint;
+	//Matrix4 M=m_CameraMatrix.getRotatePart();
+
+	tmpPos=rotate(tmpPos,*sz_axis,rad);
+	m_CameraMatrix.rotateAxis(*sz_axis,rad);
+
+	pos=tmpPos+*sz_targetpoint;
+
+	m_CameraMatrix.setAxis(3,pos);
+
+	update();
+
+}

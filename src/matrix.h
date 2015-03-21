@@ -66,18 +66,27 @@ public:
 
 	~Matrix4();
 
-	void rotateX(double rad);
-	void rotateY(double rad);
-	void rotateZ(double rad);
-	void rotateAxis(const Vector4 &axis, double rad);
+	void rotateX(double rad);//世界坐标系
+	void rotateY(double rad);//世界坐标系
+	void rotateZ(double rad);//世界坐标系
+	void rotateAxis(const Vector4 &axis, double rad);//世界坐标系
+
+	void pitch(double rad);//自身坐标系
+	void yaw(double rad);//自身坐标系
+	void roll(double rad);//自身坐标系
 
 	void translate(double x, double y, double z);
 	void translate(Vector4 v);
 	void transform(Matrix4 mat);
 
+	
+	inline void set(int i, int j, double value);
 	Vector4 getAxis(int axis);//axis=0~2对应旋转矩阵的三根坐标轴，axis=3对应平移向量
+	void setAxis(int axis, Vector4 v);
 
-	Matrix3 submat3();
+	//Matrix3 submat3();
+	Matrix4 getRotatePart();
+	Matrix4 T();
 
 	Matrix4 operator +(const Matrix4 &x);
 	Matrix4 operator -(const Matrix4 &x);

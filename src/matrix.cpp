@@ -144,6 +144,25 @@ void Matrix4::rotateZ(double rad)
 	memcpy(this,&tmp,sizeof(Matrix4));
 }
 
+void Matrix4::pitch(double rad)
+{
+	Matrix4 tmp( (*this)*Matrix4(ROTATE_X_RAD,rad) );
+
+	memcpy(this,&tmp,sizeof(Matrix4));
+}
+void Matrix4::yaw(double rad)
+{
+	Matrix4 tmp( (*this)*Matrix4(ROTATE_Y_RAD,rad) );
+
+	memcpy(this,&tmp,sizeof(Matrix4));
+}
+void Matrix4::roll(double rad)
+{
+	Matrix4 tmp( (*this)*Matrix4(ROTATE_Z_RAD,rad) );
+
+	memcpy(this,&tmp,sizeof(Matrix4));
+}
+
 void Matrix4::rotateAxis(const Vector4 &axis, double rad)
 {
 	Vector4 newAxis[3];
@@ -173,10 +192,47 @@ void Matrix4::translate(Vector4 v)
 	memcpy(this,&tmp,sizeof(Matrix4));
 }
 
+void Matrix4::set(int i, int j, double value)
+{
+	a[i][j]=value;
+}
 
 Vector4 Matrix4::getAxis(int axis)
 {
 	return Vector4(a[0][axis],a[1][axis],a[2][axis]);
+}
+
+void Matrix4::setAxis(int axis, Vector4 v)
+{
+	for(int i=0;i<4;i++)
+	{
+		a[i][axis]=v.a[i];
+	}
+}
+
+Matrix4 Matrix4::getRotatePart()
+{
+	Matrix4 tmp(*this);
+
+	for(int i=0;i<3;i++)
+		tmp.a[i][3]=0;
+
+	return tmp;
+}
+
+Matrix4 Matrix4::T()
+{
+	Matrix4 tmp;
+
+	for(int i=0;i<4;i++)
+	{
+		for(int j=0;j<4;j++)
+		{
+			tmp.a[i][j]=a[j][i];
+		}
+	}
+
+	return tmp;
 }
 
 Matrix4 Matrix4::operator +(const Matrix4 &x)
