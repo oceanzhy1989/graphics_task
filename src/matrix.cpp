@@ -192,10 +192,7 @@ void Matrix4::translate(Vector4 v)
 	memcpy(this,&tmp,sizeof(Matrix4));
 }
 
-void Matrix4::set(int i, int j, double value)
-{
-	a[i][j]=value;
-}
+
 
 Vector4 Matrix4::getAxis(int axis)
 {

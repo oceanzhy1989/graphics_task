@@ -80,7 +80,11 @@ public:
 	void transform(Matrix4 mat);
 
 	
-	inline void set(int i, int j, double value);
+	inline void set(int i, int j, double value)
+	{
+		a[i][j]=value;
+	}
+
 	Vector4 getAxis(int axis);//axis=0~2对应旋转矩阵的三根坐标轴，axis=3对应平移向量
 	void setAxis(int axis, Vector4 v);
 
