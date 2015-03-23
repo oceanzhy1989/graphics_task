@@ -20,6 +20,7 @@ public:
 
 	Vector4 getPosition();
 	void setPosition(const Vector4 &pos);
+	void lookAt(const Vector4 &viewDirection);
 
 	//rotate针对世界坐标系
 	void rotateByTarget(double rad, const Vector4 *targetPoint=NULL, const Vector4 *axis=NULL);
@@ -35,14 +36,14 @@ public:
 	Vector4 getFacingDirection();
 
 
-	const Matrix4 *getModelViewMatrix();
-	const Matrix4 *getProjectionMatrix();
+	Matrix4 *getModelViewMatrix();
+	Matrix4 *getProjectionMatrix();
 
 private:
 
 	Matrix4 m_CameraMatrix;
-	Matrix4 *m_ModelViewMatrix;
-	Matrix4 *m_ProjectionMatrix;
+	Matrix4 m_ModelViewMatrix;
+	Matrix4 m_ProjectionMatrix;
 
 	double screen_z;
 	double focalLength;

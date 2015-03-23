@@ -90,11 +90,12 @@ Matrix4::Matrix4(Mat type,double value)
 Matrix4::Matrix4(Mat type, double value_x, double value_y, double value_z)
 {
 	memset(a,0,16*sizeof(double));
+
 	switch(type)
 	{
 	case TRANSLATE:
 		{
-			for(int i=0;i<3;i++)
+			for(int i=0;i<4;i++)
 			{
 				a[i][i]=1;
 			}
@@ -348,6 +349,12 @@ Vector4 Matrix4::operator *(const Vector4 &v)
 			tmp.a[i]+=a[i][k]*v.a[k];
 		}
 		
+	}
+
+	double c=1.0/tmp.a[3];
+	for(int i=0;i<4;i++)
+	{
+		tmp.a[i]*=c;
 	}
 
 	return tmp;

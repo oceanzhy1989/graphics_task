@@ -20,6 +20,8 @@ void graphicsAPI::init(int Width,int Height)
 {
 	width=Width;
 	height=Height;
+	halfwidth=width>>1;
+	halfheight=height>>1;
 	rectSize=width*height;
 
 	pixels=new BYTE[4*rectSize];
@@ -31,7 +33,7 @@ void graphicsAPI::init(int Width,int Height)
     m_bitmapInfo.bmiHeader.biCompression =BI_RGB;
 	m_bitmapInfo.bmiHeader.biPlanes =1;
 	m_bitmapInfo.bmiHeader.biWidth =width;
-	m_bitmapInfo.bmiHeader.biHeight =height;
+	m_bitmapInfo.bmiHeader.biHeight =4*height;
 	m_bitmapInfo.bmiHeader.biSizeImage=rectSize;
 }
 
@@ -48,6 +50,8 @@ graphicsAPI *graphicsAPI::getInstance()
 
 bool graphicsAPI::storePixel(int x, int y, RGBQUAD color)
 {
+	x+=halfwidth;
+	y=halfheight-y;
 	if(x<0 || x>=width || y<0 || y>=height ) 
 		return false;
 
@@ -74,7 +78,7 @@ void graphicsAPI::draw(HDC hDC, int left, int top)
     mybmp = CreateDIBSection(mydc,&m_bitmapInfo,0,0,0,0);
     sele = SelectObject(mydc, mybmp);
 
-	SetBitmapBits(mybmp,rectSize,pixels);
+	SetBitmapBits(mybmp,4*rectSize,pixels);
     BitBlt( hDC, left, top, width, height, mydc, 0, 0, SrcCopy);
     DeleteObject(SelectObject(mydc,mybmp));
 	DeleteObject(mybmp);

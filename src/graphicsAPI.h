@@ -25,8 +25,8 @@ private:
 	static graphicsAPI *instance;
 
 	BYTE *pixels;
-	int width;
-	int height;
+	int width,halfwidth;
+	int height,halfheight;
 	int rectSize;
 
 	BITMAPINFO m_bitmapInfo;
