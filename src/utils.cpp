@@ -15,20 +15,20 @@ void storeLine(const Vertex *v1, const Vertex *v2)
 	{
 		if(dx<0)
 		{
-			x1=v2->pos.a[0];
-			x2=v1->pos.a[0];
-			y1=v2->pos.a[1];
-			y2=v1->pos.a[1];
+			x1=round(v2->pos.a[0]);
+			x2=round(v1->pos.a[0]);
+			y1=round(v2->pos.a[1]);
+			y2=round(v1->pos.a[1]);
 
 			sz_v1=v2;
 			sz_v2=v1;
 		}
 		else
 		{
-			x1=v1->pos.a[0];
-			x2=v2->pos.a[0];
-			y1=v1->pos.a[1];
-			y2=v2->pos.a[1];
+			x1=round(v1->pos.a[0]);
+			x2=round(v2->pos.a[0]);
+			y1=round(v1->pos.a[1]);
+			y2=round(v2->pos.a[1]);
 
 			sz_v1=v1;
 			sz_v2=v2;
@@ -64,20 +64,20 @@ void storeLine(const Vertex *v1, const Vertex *v2)
 
 		if(dy<0)
 		{
-			x1=v2->pos.a[0];
-			x2=v1->pos.a[0];
-			y1=v2->pos.a[1];
-			y2=v1->pos.a[1];
+			x1=round(v2->pos.a[0]);
+			x2=round(v1->pos.a[0]);
+			y1=round(v2->pos.a[1]);
+			y2=round(v1->pos.a[1]);
 
 			sz_v1=v2;
 			sz_v2=v1;
 		}
 		else
 		{
-			x1=v1->pos.a[0];
-			x2=v2->pos.a[0];
-			y1=v1->pos.a[1];
-			y2=v2->pos.a[1];
+			x1=round(v1->pos.a[0]);
+			x2=round(v2->pos.a[0]);
+			y1=round(v1->pos.a[1]);
+			y2=round(v2->pos.a[1]);
 
 			sz_v1=v1;
 			sz_v2=v2;

@@ -32,6 +32,10 @@ public://²âÊÔ½×¶Îº¯Êý
 
 private:
 
+	void Rasterization(const Triangle &t);
+
+private:
+
 	int width,height;
 	Camera *m_camera;
 	Matrix4 *m_ModelViewMatrix;
