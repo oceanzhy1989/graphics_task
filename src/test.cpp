@@ -44,25 +44,25 @@ void main()
 
 	//api->draw(hdc,1000,100);
 	myRenderer ren(1000,800,hdc,900,20);
-	ren.SetOptions(DRAW_BOARDER | FILL);
+	//ren.SetOptions(DRAW_BOARDER | FILL);
 	//ren.SetOptions(DRAW_BOARDER);
-	//ren.SetOptions(FILL);
+	ren.SetOptions(FILL | DEPTH_TEST);
 	Material m1,m2,m3;
 
 	double White[3]={1,1,1};
-	ren.AddVertex(Vector(0,0),m1,Red);
-	ren.AddVertex(Vector(200,0),m1,Green);
-	ren.AddVertex(Vector(200,200),m1,Blue);
-	ren.AddVertex(Vector(100,100,100),m1,White);
+	ren.AddVertex(Vector(0,0),m1,Red,true);
+	ren.AddVertex(Vector(200,0),m1,Green,true);
+	ren.AddVertex(Vector(200,200),m1,Blue,true);
+	ren.AddVertex(Vector(100,100,-100),m1,White,true);
 
 	ren.AddTriangle(0,1,2);
 	ren.AddTriangle(0,1,3);
 	ren.AddTriangle(0,3,2);
 	ren.AddTriangle(3,1,2);
 
-	ren.getCamera()->drawBack(500);
-	ren.getCamera()->rotateByTarget(0.1);
-	ren.getCamera()->pitch(1);
+	ren.getCamera()->drawBack(100);
+	ren.getCamera()->rotateByTarget(0.5);
+	ren.getCamera()->pitch(-1.5);
 	ren.Render();
 
 	

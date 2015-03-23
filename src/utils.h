@@ -21,7 +21,9 @@ typedef struct
 	Vector4 pos;
 	Vector4 n;
 
-	double color[3];
+	double I[3];//π‚’’
+
+	double color[3];//rgba
 	Material mat;
 } Vertex;
 
@@ -37,20 +39,38 @@ typedef struct
 	double a[2];
 } Point2D;
 
+typedef struct makeBuffer
+{
+	double I[3];
+	double alpha[3];
+	double depth;
 
+	makeBuffer(){}
+
+	makeBuffer(const Vertex &v)
+	{
+		memcpy(I,v.I,3*sizeof(double));
+		memcpy(alpha,v.mat.alpha,3*sizeof(double));
+		depth=v.pos.a[2];
+	}
+} IllumWithDepth;
 
 inline int round(double x)
 {
 	return int(x+0.5);
 }
 
-void storeLine(const Vertex *v1, const Vertex *v2);
+
 
 
 
 
 Vertex operator + (const Vertex &v1, const Vertex &v2);
 Vertex operator * (double c, const Vertex &v2);
+
+IllumWithDepth operator + (const IllumWithDepth &v1, const IllumWithDepth &v2);
+IllumWithDepth operator * (double c, const IllumWithDepth &v2);
+
 
 
 #endif

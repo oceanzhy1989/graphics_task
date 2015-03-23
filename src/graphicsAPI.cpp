@@ -50,8 +50,8 @@ graphicsAPI *graphicsAPI::getInstance()
 
 bool graphicsAPI::storePixel(int x, int y, RGBQUAD color)
 {
-	x+=halfwidth;
-	y=halfheight-y;
+	//x+=halfwidth;
+	y=height-y;
 	if(x<0 || x>=width || y<0 || y>=height ) 
 		return false;
 
