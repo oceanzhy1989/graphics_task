@@ -43,11 +43,12 @@ void main()
 	HDC hdc = GetWindowDC(hwnd);
 
 	//api->draw(hdc,1000,100);
-	myRenderer ren(1000,800,hdc,900,20);
+	myRenderer ren(600,500,hdc,500,20);
 	//ren.SetOptions(DRAW_BOARDER | FILL);
 	//ren.SetOptions(DRAW_BOARDER);
 	ren.SetOptions(FILL | DEPTH_TEST);
 	Material m1,m2,m3;
+	m1=newMaterial(0.02,0.151,0.2,0,1,0.8);
 
 	double White[3]={1,1,1};
 	ren.AddVertex(Vector(0,0),m1,Red,true);
@@ -59,6 +60,13 @@ void main()
 	ren.AddTriangle(0,1,3);
 	ren.AddTriangle(0,3,2);
 	ren.AddTriangle(3,1,2);
+
+	ren.finishAdd();
+
+	double Solar[3]={10,10,1};
+	//double DayLight[3]={3,3,3};
+	ren.setAmbient(3,3,3);
+	ren.setLightSource(Vector(-1,-1,-1),Solar);
 
 	ren.getCamera()->drawBack(100);
 	ren.getCamera()->rotateByTarget(0.5);

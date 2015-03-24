@@ -110,6 +110,7 @@ Vector4 operator -(const Vector4 &x, const Vector4 &y);
 Vector4 operator -(const Vector4 &x);
 Vector4 operator *(double c, const Vector4 &x);
 void operator +=(Vector4 &x, const Vector4 &y);
+void operator *=(Vector4 &x, double c);
 
 double dot(const Vector4 &x, const Vector4 &y);
 Vector4 cross(const Vector4 &x, const Vector4 &y);

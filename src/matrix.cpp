@@ -301,6 +301,13 @@ void operator +=(Vector4 &x, const Vector4 &y)
 	x.a[2]+=y.a[2];
 }
 
+void operator *=(Vector4 &x, double c)
+{
+	x.a[0]*=c;
+	x.a[1]*=c;
+	x.a[2]*=c;
+}
+
 void operator -=(Vector4 &x, const Vector4 &y)
 {
 	x.a[0]-=y.a[0];

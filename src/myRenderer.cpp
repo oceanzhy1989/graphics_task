@@ -36,6 +36,18 @@ myRenderer::~myRenderer()
 		delete[] bufferMap;
 	}
 }
+void myRenderer::setAmbient(double red, double green, double blue)
+{
+	ambient[0]=red;
+	ambient[1]=green;
+	ambient[2]=blue;
+}
+
+void myRenderer::setLightSource(Vector direction, double I[3])
+{
+	lSource.direction=direction;
+	memcpy(lSource.I,I,3*sizeof(double));
+}
 
 void myRenderer::SetOptions(int Option)
 {
@@ -75,10 +87,18 @@ int myRenderer::Render()
 	}
 
 	//º∆À„π‚’’
-	for(int i=0;i<vert_count;i++)
+	if(options & DEPTH_TEST)
 	{
-		memcpy(ProjectionVertice[i].I,modelVertice[i].I,3*sizeof(double));
+		this->calIllumination();
 	}
+	else
+	{
+		for(int i=0;i<vert_count;i++)
+		{
+			memcpy(ProjectionVertice[i].I,modelVertice[i].color,3*sizeof(double));
+		}
+	}
+	
 
 	int tri_count=modelTriangles.size();
 	if(options & DRAW_BOARDER)
@@ -146,15 +166,16 @@ void myRenderer::AddVertex(const Vector4 &pos, const Material &mat, double color
 	Vertex v;
 	v.pos=pos;
 	v.mat=mat;
+	v.triangle_count=0;
 
-	if(depth_test)
-	{
-		memcpy(v.I,color,3*sizeof(double));
-	}
-	else
-	{
+	//if(depth_test)
+	//{
+	//	memcpy(v.I,color,3*sizeof(double));
+	//}
+	//else
+	//{
 		memcpy(v.color,color,3*sizeof(double));
-	}
+	//}
 
 	modelVertice.push_back(v);
 }
@@ -165,7 +186,29 @@ void myRenderer::AddTriangle(VertexID id1, VertexID id2, VertexID id3)
 	t.vert[0]=id1;
 	t.vert[1]=id2;
 	t.vert[2]=id3;
+	
+	calNormalVector(&t);
+	for(int i=0;i<3;i++)
+	{
+		modelVertice[t.vert[i]].n+=t.n;
+		modelVertice[t.vert[i]].triangle_count++;
+	}
 	modelTriangles.push_back(t);
+}
+
+void myRenderer::finishAdd()
+{
+	int vert_count=modelVertice.size();
+
+	for(int i=0;i<vert_count;i++)
+	{
+		if(modelVertice[i].triangle_count>0)
+		{
+			modelVertice[i].n*=1.0/modelVertice[i].triangle_count;
+			modelVertice[i].n=unitof(modelVertice[i].n);
+		}
+
+	}
 }
 
 void myRenderer::mergeBuffer(int x, int y, const IllumWithDepth &v)
@@ -307,6 +350,44 @@ void myRenderer::storeLine(const Vertex *v1, const Vertex *v2)
 	}
 
 	//graphicsAPI::getInstance()->draw(hDC,left,top);
+}
+
+void myRenderer::calNormalVector(Triangle *t)
+{
+	Vector *v0=&(modelVertice[t->vert[0]].pos);
+	Vector *v1=&(modelVertice[t->vert[1]].pos);
+	Vector *v2=&(modelVertice[t->vert[2]].pos);
+
+	Vector l1(*v1-*v0);
+	Vector l2(*v2-*v1);
+
+	t->n=unitof(cross(l1,l2));
+}
+
+void myRenderer::calIllumination()
+{
+	int vert_count=modelVertice.size();
+
+	double Id[3]={0};
+	double Ihigh[3]={0};
+
+	for(int i=0;i<vert_count;i++)
+	{
+		if(modelVertice[i].triangle_count<1) continue;
+
+		
+		double coe=-dot(lSource.direction,modelVertice[i].n);
+		for(int k=0;k<3;k++)
+		{
+			Id[k]=coe*lSource.I[k];
+			if(Id[k]<0)
+				Id[k]=0;
+
+			Material *mat=&modelVertice[i].mat;
+			double newI=(mat->Kd)*Id[k]+(mat->Ka)*ambient[k]+(mat->Ks)*Ihigh[k];
+			ProjectionVertice[i].I[k]=newI*modelVertice[i].color[k];
+		}
+	}
 }
 
 void myRenderer::subRasterization(Vertex **v,int x, int y)

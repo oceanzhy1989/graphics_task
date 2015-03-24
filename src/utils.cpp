@@ -1,6 +1,26 @@
 #include "utils.h"
 
 
+Material newMaterial(double Ka, double Kd, double Ks, double T, double n, double a, double *alpha)
+{
+	Material tmp;
+
+	tmp.Ka=Ka;	
+	tmp.Ks=(1-Kd)*Ks/(Ks+T+a);
+	tmp.Kd=Kd*Ks/(Ks+T+a);
+	tmp.T=T/(Ks+T+a);
+	tmp.n=n;
+	tmp.roughn=10/pow(Kd,1);
+	if(alpha)
+		memcpy(&(tmp.alpha),alpha,3*sizeof(double));
+	else
+	{
+		for(int i=0;i<3;i++)
+			tmp.alpha[i]=0;
+	}
+
+	return tmp;
+}
 
 Vertex operator + (const Vertex &v1, const Vertex &v2)
 {

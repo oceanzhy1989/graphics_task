@@ -20,12 +20,20 @@ typedef struct
 {
 	Vector4 pos;
 	Vector4 n;
+	int triangle_count;
 
 	double I[3];//π‚’’
 
 	double color[3];//rgba
 	Material mat;
 } Vertex;
+
+typedef struct
+{
+	double I[3];
+
+	Vector4 direction;
+} LightSource;
 
 typedef int VertexID;
 typedef struct
@@ -63,7 +71,7 @@ inline int round(double x)
 
 
 
-
+Material newMaterial(double Ka, double Kd, double Ks, double T=0, double n=1.001, double a=0, double *alpha=NULL);
 
 Vertex operator + (const Vertex &v1, const Vertex &v2);
 Vertex operator * (double c, const Vertex &v2);
