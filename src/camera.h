@@ -49,6 +49,8 @@ private:
 	double focalLength;
 	double screenWidth;
 	double screenHeight;
+
+	double scale;
 };
 
 

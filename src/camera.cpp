@@ -11,9 +11,10 @@ Camera::Camera(double Screen_z, double ScreenWidth, double ScreenHeight, double 
 	this->screenHeight=ScreenHeight;
 	this->focalLength=FocalLength;
 
-	//m_ModelViewMatrix=new Matrix4;
-	//m_ProjectionMatrix=new Matrix4;
-	//memset(m_ProjectionMatrix,0,16*sizeof(double));
+	scale=1;
+	focalLength=FocalLength/scale;
+
+
 	update();
 }
 
@@ -38,6 +39,9 @@ void Camera::update()
 	m_ProjectionMatrix.set(3,2,1);
 	m_ProjectionMatrix.set(2,3,-z0*screen_z);
 	m_ProjectionMatrix.set(3,3,-z0);
+
+
+	m_ProjectionMatrix=Matrix4(SCALE,scale)*m_ProjectionMatrix;
 
 	//*m_ProjectionMatrix=(*m_ProjectionMatrix)*(*m_ModelViewMatrix);//总的投影矩阵
 
@@ -64,6 +68,8 @@ void Camera::lookAt(const Vector4 &viewDirection)
 	m_CameraMatrix.setAxis(0,sz_nx);
 	m_CameraMatrix.setAxis(1,sz_ny);
 	m_CameraMatrix.setAxis(2,sz_nz);
+
+	update();
 }
 
 Vector4 Camera::getFacingDirection()

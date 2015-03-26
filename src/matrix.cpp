@@ -202,10 +202,13 @@ Vector4 Matrix4::getAxis(int axis)
 
 void Matrix4::setAxis(int axis, Vector4 v)
 {
-	for(int i=0;i<4;i++)
+	for(int i=0;i<3;i++)
 	{
 		a[i][axis]=v.a[i];
 	}
+
+	if(axis==3)
+		a[3][3]=1;
 }
 
 Matrix4 Matrix4::getRotatePart()
@@ -267,7 +270,7 @@ Matrix4 Matrix4::operator *(const Matrix4 &x)
 {
 	Matrix4 tmp;
 
-	for(int i=0;i<3;i++)
+	for(int i=0;i<4;i++)
 	{
 		for(int j=0;j<4;j++)
 		{

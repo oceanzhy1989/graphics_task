@@ -21,6 +21,8 @@ public:
 	void setMouseState(int button, bool state, LPARAM lParam);
 	void mouseMove(LPARAM lParam);
 
+	
+
 	void display();
 private:
 	bool WisDown;
@@ -34,4 +36,5 @@ private:
 	int mouseX,mouseY;
 
 	myRenderer *ren;
+
 };

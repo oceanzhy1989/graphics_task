@@ -161,7 +161,10 @@ Camera *myRenderer::getCamera()
 }
 
 
-
+void myRenderer::AddVertex(const Vertex &v)
+{
+	modelVertice.push_back(v);
+}
 
 void myRenderer::AddVertex(const Vector4 &pos, const Material &mat, double color[], bool depth_test)
 {
@@ -271,6 +274,7 @@ bool myRenderer::ReadSTL(const char *filename, Material mat, double color[3], Ma
 				v.mat=mat;
 				v.n=t.n;
 				v.triangle_count=1;
+				v.tex_id=-1;
 				memcpy(v.color,color,3*sizeof(double));
 				t.vert[j]=start_num++;
 				modelVertice.push_back(v);
@@ -318,6 +322,7 @@ bool myRenderer::ReadSTL(const char *filename, Material mat, double color[3], Ma
 				v.mat=mat;
 				v.triangle_count=1;
 				v.n=t.n;
+				v.tex_id=-1;
 				memcpy(v.color,color,3*sizeof(double));
 				t.vert[j]=start_num++;
 				modelVertice.push_back(v);
@@ -542,7 +547,10 @@ void myRenderer::calIllumination()
 				Material *mat=&modelVertice[i].mat;
 				double newI=(mat->Kd)*Id[k]+(mat->Ka)*ambient[k]+(mat->Ks)*Ihigh[k];
 				//ProjectionVertice[i].I[k]=newI*modelVertice[i].color[k];
-				modelVertice[i].I[k]=newI*modelVertice[i].color[k];
+				if((options & TEXTURE_MAPPING) && modelVertice[i].tex_id>=0)
+					modelVertice[i].I[k]=newI;
+				else
+					modelVertice[i].I[k]=newI*modelVertice[i].color[k];
 			}
 		}
 	}
@@ -553,6 +561,19 @@ void myRenderer::calIllumination()
 			memcpy(ProjectionVertice[i].I,modelVertice[i].color,3*sizeof(double));
 		}
 	}
+}
+
+bool myRenderer::loadNewTexture(const char *tex_file_name)
+{
+	MYBITMAP newReader;
+
+	if(newReader.readBmp(tex_file_name))
+	{
+		textures.push_back(newReader);
+		return true;
+	}
+
+	return false;
 }
 
 void myRenderer::subRasterization(Vertex **v,int x, int y, int ModelVertexIndex[3])
@@ -594,6 +615,14 @@ void myRenderer::subRasterization(Vertex **v,int x, int y, int ModelVertexIndex[
 		IllumWithDepth tmp=c[0]*IllumWithDepth(modelVertice[ModelVertexIndex[0]],v[0]->pos.a[2])+
 						   c[1]*IllumWithDepth(modelVertice[ModelVertexIndex[1]],v[1]->pos.a[2])+
 						   c[2]*IllumWithDepth(modelVertice[ModelVertexIndex[2]],v[2]->pos.a[2]);
+
+		if((options & TEXTURE_MAPPING) && tmp.tex_id>=0 && tmp.tex_id<textures.size() )
+		{
+			for(int k=0;k<3;k++)
+			{
+				tmp.I[k]*=textures[tmp.tex_id].readPixel(tmp.tex_u,tmp.tex_v).color[k];
+			}
+		}
 		mergeBuffer(x,y,tmp);
 	}
 	else

@@ -1,6 +1,7 @@
 #ifndef __MY_RENDERER_H__
 #define __MY_RENDERER_H__
 
+#include "bmpReader.h"
 #include "camera.h"
 #include "utils.h"
 #include <vector>
@@ -36,12 +37,14 @@ public:
 	void setLightSource(Vector direction, double I[3]);
 	void SetOptions(int Option);
 	void calIllumination();
+	bool loadNewTexture(const char *tex_file_name);
 	int Render();
 
 	Camera *getCamera();
 
 public://²âÊÔ½×¶Îº¯Êý
 
+	void AddVertex(const Vertex &v);
 	void AddVertex(const Vector4 &pos, const Material &mat, double color[3], bool depth_test=false);
 	void AddTriangle(VertexID id1, VertexID id2, VertexID id3);
 	bool ReadSTL(const char *filename, Material mat, double color[3], Matrix4 transformMat=IdentityMatrix);
@@ -77,6 +80,7 @@ private:
 
 	LightSource lSource;
 	double ambient[3];
+	vector<MYBITMAP> textures;
 
 	HDC m_hdc;
 	int xoff;

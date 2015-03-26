@@ -69,26 +69,30 @@ Vertex operator * (double c, const Vertex &v2)
 
 IllumWithDepth operator + (const IllumWithDepth &v1, const IllumWithDepth &v2)
 {
-	IllumWithDepth tmp;
+	IllumWithDepth tmp(v1);
 
-	tmp.depth=v1.depth+v2.depth;
+	tmp.depth+=v2.depth;
+	tmp.tex_u+=v2.tex_u;
+	tmp.tex_v+=v2.tex_v;
 	for(int i=0;i<3;i++)
 	{
-		tmp.alpha[i]=v1.alpha[i]+v2.alpha[i];
-		tmp.I[i]=v1.I[i]+v2.I[i];
+		tmp.alpha[i]+=v2.alpha[i];
+		tmp.I[i]+=v2.I[i];
 	}
 
 	return tmp;
 }
 IllumWithDepth operator * (double c, const IllumWithDepth &v2)
 {
-	IllumWithDepth tmp;
+	IllumWithDepth tmp(v2);
 
-	tmp.depth=c*v2.depth;
+	tmp.depth*=c;
+	tmp.tex_u*=c;
+	tmp.tex_v*=c;
 	for(int i=0;i<3;i++)
 	{
-		tmp.alpha[i]=c*v2.alpha[i];
-		tmp.I[i]=c*v2.I[i];
+		tmp.alpha[i]*=c;
+		tmp.I[i]*=c;
 	}
 
 	return tmp;

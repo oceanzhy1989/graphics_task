@@ -1,9 +1,12 @@
 #include "Controller.h"
+#include "bmpReader.h"
 
 double vRed[3]={1,0,0};
 double vGreen[3]={0,1,0};
 double vBlue[3]={0,0,1};
 double vWhite[3]={1,1,1};
+
+
 
 Controller::Controller()
 {
@@ -23,14 +26,65 @@ Controller::~Controller()
 
 void Controller::init(int winWidth, int winHeight, HDC hdc)
 {
+	//int tex_ok=reader[0].readBmp("../../data/grass.bmp");
+	//
+	//if(tex_ok)
+	//{
+	//	floatColor mycolor=reader.readPixel(0.2,0.5);
+	//}
+
 	if(!ren)
 	{
 		ren=new myRenderer(winWidth,winHeight,hdc);
 
-		ren->SetOptions(FILL | DEPTH_TEST);
+		ren->SetOptions(FILL | DEPTH_TEST | TEXTURE_MAPPING);
+		ren->loadNewTexture("../../data/grass.bmp");
+
 		Material m1;
 		m1=newMaterial(0.02,0.151,0.2,0,1,0.8);
 		double newColor[3]={0.8,0.6,0.3};
+
+		Vertex texv1,texv2,texv3,texv4;
+
+		texv1.triangle_count=0;
+		texv1.tex_id=0;
+		texv1.tex_coord.u=0.1;
+		texv1.tex_coord.v=0.1;
+		texv1.mat=m1;
+		texv1.pos=Vector(-300,300,-10);
+
+		texv2.triangle_count=0;
+		texv2.tex_id=0;
+		texv2.tex_coord.u=0.9;
+		texv2.tex_coord.v=0.1;
+		texv2.mat=m1;
+		texv2.pos=Vector(300,300,-10);
+
+		texv3.triangle_count=0;
+		texv3.tex_id=0;
+		texv3.tex_coord.u=0.9;
+		texv3.tex_coord.v=0.9;
+		texv3.mat=m1;
+		texv3.pos=Vector(300,-300,-10);
+
+		texv4.triangle_count=0;
+		texv4.tex_id=0;
+		texv4.tex_coord.u=0.1;
+		texv4.tex_coord.v=0.9;
+		texv4.mat=m1;
+		texv4.pos=Vector(-300,-300,-10);
+
+		ren->AddVertex(texv1);
+		ren->AddVertex(texv2);
+		ren->AddVertex(texv3);
+		ren->AddVertex(texv4);
+
+		ren->AddTriangle(0,2,1);
+		ren->AddTriangle(0,3,2);
+
+		ren->finishAdd();
+
+
 		ren->ReadSTL("H:/zhy's/projects/CG/graphics_task/build/zhy2.stl",m1,newColor);
 		ren->ReadSTL("H:/zhy's/projects/CG/graphics_task/build/traffic_cone.stl",m1,newColor,Matrix4(SCALE,8));
 		/*ren->AddVertex(Vector(0,0),m1,vRed,true);
@@ -45,9 +99,11 @@ void Controller::init(int winWidth, int winHeight, HDC hdc)
 		double Solar[3]={10,10,10};
 		ren->setAmbient(3,3,3);
 		ren->setLightSource(Vector(-1,-1,-1),Solar);
-		ren->getCamera()->drawBack(-300);
-		ren->getCamera()->pitch(1.5);
+		ren->getCamera()->drawBack(500);
+		
 		ren->getCamera()->setPosition(Vector(30,30,30));
+		//ren->getCamera()->pitch(1.5);
+		ren->getCamera()->lookAt(Vector(0,2,-1));
 
 		ren->calIllumination();
 	}
@@ -92,8 +148,8 @@ void Controller::setMouseState(int button, bool state, LPARAM lParam)
 		rButtonIsDown=state;
 		if(state)
 		{
-			old_mouseX=LOWORD(lParam);
-			old_mouseY=HIWORD(lParam);
+			mouseX=LOWORD(lParam);
+			mouseY=HIWORD(lParam);
 		}
 		break;
 	}
@@ -138,7 +194,7 @@ void Controller::display()
 	}
 	if(SisDown)
 	{
-		//ren->getCamera()->setPosition(pos-5*direction);
+		ren->getCamera()->setPosition(pos-50*direction);
 	}
 
 	ren->Render();

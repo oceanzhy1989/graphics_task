@@ -18,6 +18,12 @@ typedef struct
 
 typedef struct
 {
+	double u;
+	double v;
+} TextureCoord;
+
+typedef struct
+{
 	Vector4 pos;
 	Vector4 n;
 	int triangle_count;
@@ -26,6 +32,8 @@ typedef struct
 
 	double color[3];//rgba
 	Material mat;
+	int tex_id;
+	TextureCoord tex_coord;
 } Vertex;
 
 typedef struct
@@ -42,10 +50,7 @@ typedef struct
 	VertexID vert[3];
 } Triangle;
 
-typedef struct
-{
-	double a[2];
-} Point2D;
+
 
 typedef struct makeBuffer
 {
@@ -53,12 +58,19 @@ typedef struct makeBuffer
 	double alpha[3];
 	double depth;
 
+	int tex_id;
+	double tex_u;
+	double tex_v;
+
 	makeBuffer(){}
 
 	makeBuffer(const Vertex &v, double Depth)
 	{
 		memcpy(I,v.I,3*sizeof(double));
 		memcpy(alpha,v.mat.alpha,3*sizeof(double));
+		tex_id=v.tex_id;
+		tex_u=v.tex_coord.u;
+		tex_v=v.tex_coord.v;
 		depth=Depth;
 	}
 } IllumWithDepth;
