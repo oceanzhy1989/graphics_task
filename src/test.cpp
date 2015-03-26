@@ -51,26 +51,33 @@ void main()
 	m1=newMaterial(0.02,0.151,0.2,0,1,0.8);
 
 	double White[3]={1,1,1};
-	ren.AddVertex(Vector(0,0),m1,Red,true);
-	ren.AddVertex(Vector(200,0),m1,Green,true);
-	ren.AddVertex(Vector(200,200),m1,Blue,true);
-	ren.AddVertex(Vector(100,100,-100),m1,White,true);
+	double newColor[3]={0.8,0.6,0.3};
+	//ren.AddVertex(Vector(0,0),m1,Red,true);
+	//ren.AddVertex(Vector(200,0),m1,Green,true);
+	//ren.AddVertex(Vector(200,200),m1,Blue,true);
+	//ren.AddVertex(Vector(100,100,-100),m1,White,true);
 
-	ren.AddTriangle(0,1,2);
-	ren.AddTriangle(0,1,3);
-	ren.AddTriangle(0,3,2);
-	ren.AddTriangle(3,1,2);
+	//ren.AddTriangle(0,1,2);
+	//ren.AddTriangle(0,1,3);
+	//ren.AddTriangle(0,3,2);
+	//ren.AddTriangle(3,1,2);
 
-	ren.finishAdd();
+	//ren.finishAdd();
+	//ren.ReadSTL("H:/zhy's/projects/CG/graphics_task/build/torus.stl",m1,newColor);
+	//ren.ReadSTL("H:/zhy's/projects/CG/graphics_task/build/traffic_cone.stl",m1,newColor);
+	ren.ReadSTL("H:/zhy's/projects/CG/graphics_task/build/zhy2.stl",m1,newColor);
 
 	double Solar[3]={10,10,1};
 	//double DayLight[3]={3,3,3};
 	ren.setAmbient(3,3,3);
 	ren.setLightSource(Vector(-1,-1,-1),Solar);
 
-	ren.getCamera()->drawBack(100);
-	ren.getCamera()->rotateByTarget(0.5);
-	ren.getCamera()->pitch(-1.5);
+	ren.getCamera()->drawBack(-300);
+	ren.getCamera()->rotateByTarget(-0.1);
+	ren.getCamera()->pitch(1.8);
+	ren.getCamera()->setPosition(Vector(50,50,50));
+	ren.Render();
+	ren.clearBuffer();
 	ren.Render();
 
 	

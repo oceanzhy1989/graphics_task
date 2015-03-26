@@ -1,5 +1,9 @@
 #include "myRenderer.h"
 #include "graphicsAPI.h"
+#include "stdio.h"
+#include <iostream>
+#include <fstream>
+using namespace std;
 
 
 myRenderer::myRenderer(int winWidth, int winHeight, HDC hDC, int xoffset, int yoffset) : options(DRAW_BOARDER),m_hdc(hDC),xoff(xoffset),yoff(yoffset)
@@ -36,6 +40,12 @@ myRenderer::~myRenderer()
 		delete[] bufferMap;
 	}
 }
+
+void myRenderer::setHDC(HDC hDC)
+{
+	m_hdc=hDC;
+}
+
 void myRenderer::setAmbient(double red, double green, double blue)
 {
 	ambient[0]=red;
@@ -70,11 +80,11 @@ int myRenderer::Render()
 		modelViewVertice.resize(vert_count);
 		ProjectionVertice.resize(vert_count);
 
-		for(int i=0;i<vert_count;i++)
-		{
-			ProjectionVertice[i].mat=modelVertice[i].mat;
-			memcpy(ProjectionVertice[i].color,modelVertice[i].color,3*sizeof(double));
-		}
+		//for(int i=0;i<vert_count;i++)
+		//{
+		//	ProjectionVertice[i].mat=modelVertice[i].mat;
+		//	memcpy(ProjectionVertice[i].color,modelVertice[i].color,3*sizeof(double));
+		//}
 
 	}
 
@@ -82,22 +92,14 @@ int myRenderer::Render()
 	{
 		modelViewVertice[i].pos=(*m_ModelViewMatrix)*modelVertice[i].pos;
 		ProjectionVertice[i].pos=(*m_ProjectionMatrix)*modelViewVertice[i].pos;
+		//ProjectionVertice[i].pos=0.9*modelVertice[i].pos;
 		ProjectionVertice[i].pos.a[2]=modelViewVertice[i].pos.a[2];
 		
 	}
 
 	//¼ÆËã¹âÕÕ
-	if(options & DEPTH_TEST)
-	{
-		this->calIllumination();
-	}
-	else
-	{
-		for(int i=0;i<vert_count;i++)
-		{
-			memcpy(ProjectionVertice[i].I,modelVertice[i].color,3*sizeof(double));
-		}
-	}
+	//this->calIllumination();
+
 	
 
 	int tri_count=modelTriangles.size();
@@ -196,6 +198,143 @@ void myRenderer::AddTriangle(VertexID id1, VertexID id2, VertexID id3)
 	modelTriangles.push_back(t);
 }
 
+bool myRenderer::ReadSTL(const char *filename, Material mat, double color[3], Matrix4 transformMat)
+{
+	int jinzhi=0;
+	FILE *fp;
+	
+	cout<<"filename="<<filename<<endl;
+	
+	char check;
+	fp=fopen(filename,"rb");
+	if(!fp)
+		return false;
+	while(!feof(fp))
+	{
+		fread(&check,1,sizeof(char),fp);
+		if(check==char(0))
+		{
+			jinzhi=1;
+			break;
+		}
+	}
+	fclose(fp);
+
+
+	ifstream from;
+	if(jinzhi==0) 
+		from.open(filename);
+	else
+		fp=fopen(filename,"rb");
+
+	if(!from){
+		cout<<"file error"<<endl;
+		return false;
+	}
+
+	const double epscopoint=0.000001;
+	long triNum;
+	FACET triangle;
+
+	int start_num=modelVertice.size();
+	
+	unsigned short aa;
+//	from.seekg(82,ios::beg);
+	if(jinzhi)
+	{
+		fseek(fp,80l,SEEK_SET);
+		fread(&triNum,1,sizeof(long),fp);
+
+		if(triNum<=0)
+			return false;
+
+		for(int i=0;i<triNum;i++)
+		{
+			fread(&triangle,1,sizeof(FACET),fp);
+			fread(&aa,1,sizeof(unsigned short),fp);
+
+			Triangle t;
+			
+			t.n.a[0]=triangle.n.x;
+			t.n.a[1]=triangle.n.y;
+			t.n.a[2]=triangle.n.z;
+
+
+			for(int j=0;j<3;j++)
+			{
+				Vertex v;
+				
+				v.pos.a[0]=triangle.dot[j].x;
+				v.pos.a[1]=triangle.dot[j].y;
+				v.pos.a[2]=triangle.dot[j].z;
+				v.pos=transformMat*v.pos;
+				v.mat=mat;
+				v.n=t.n;
+				v.triangle_count=1;
+				memcpy(v.color,color,3*sizeof(double));
+				t.vert[j]=start_num++;
+				modelVertice.push_back(v);
+				
+
+			}
+
+			modelTriangles.push_back(t);
+
+
+			if(!from) break;
+			//vtri.push_back(tri);
+		}
+
+
+
+	}
+	
+	else
+	{
+		char rubbish[50];
+
+
+		from>>rubbish>>rubbish;
+
+		for(;;)
+		{
+			from>>rubbish>>rubbish;
+			Triangle t;
+
+			from>>t.n.a[0]>>t.n.a[1]>>t.n.a[2];
+
+			from>>rubbish>>rubbish;
+
+			if(!from)
+				break;
+
+			for(int j=0; j<3; j++)
+			{
+				Vertex v;
+
+				from>>rubbish;
+				from>>v.pos.a[0]>>v.pos.a[1]>>v.pos.a[2];
+				v.pos=transformMat*v.pos;
+				v.mat=mat;
+				v.triangle_count=1;
+				v.n=t.n;
+				memcpy(v.color,color,3*sizeof(double));
+				t.vert[j]=start_num++;
+				modelVertice.push_back(v);
+
+			}
+			from>>rubbish>>rubbish;
+			modelTriangles.push_back(t);
+
+		}	
+
+		from.close();
+	}
+
+
+	return true;
+}
+
 void myRenderer::finishAdd()
 {
 	int vert_count=modelVertice.size();
@@ -209,6 +348,21 @@ void myRenderer::finishAdd()
 		}
 
 	}
+}
+
+void myRenderer::clearBuffer()
+{
+	for(int i=0;i<width;i++)
+	{
+		for(int j=0;j<height;j++)
+		{
+			list<IllumWithDepth> *p=bufferMap+i+j*width;
+			
+			p->clear();
+		}
+	}
+
+	graphicsAPI::getInstance()->flush();
 }
 
 void myRenderer::mergeBuffer(int x, int y, const IllumWithDepth &v)
@@ -368,29 +522,40 @@ void myRenderer::calIllumination()
 {
 	int vert_count=modelVertice.size();
 
-	double Id[3]={0};
-	double Ihigh[3]={0};
-
-	for(int i=0;i<vert_count;i++)
+	if(options & DEPTH_TEST)
 	{
-		if(modelVertice[i].triangle_count<1) continue;
+		double Id[3]={0};
+		double Ihigh[3]={0};
 
-		
-		double coe=-dot(lSource.direction,modelVertice[i].n);
-		for(int k=0;k<3;k++)
+		for(int i=0;i<vert_count;i++)
 		{
-			Id[k]=coe*lSource.I[k];
-			if(Id[k]<0)
-				Id[k]=0;
+			if(modelVertice[i].triangle_count<1) continue;
 
-			Material *mat=&modelVertice[i].mat;
-			double newI=(mat->Kd)*Id[k]+(mat->Ka)*ambient[k]+(mat->Ks)*Ihigh[k];
-			ProjectionVertice[i].I[k]=newI*modelVertice[i].color[k];
+			
+			double coe=-dot(lSource.direction,modelVertice[i].n);
+			for(int k=0;k<3;k++)
+			{
+				Id[k]=coe*lSource.I[k];
+				if(Id[k]<0)
+					Id[k]=0;
+
+				Material *mat=&modelVertice[i].mat;
+				double newI=(mat->Kd)*Id[k]+(mat->Ka)*ambient[k]+(mat->Ks)*Ihigh[k];
+				//ProjectionVertice[i].I[k]=newI*modelVertice[i].color[k];
+				modelVertice[i].I[k]=newI*modelVertice[i].color[k];
+			}
+		}
+	}
+	else
+	{
+		for(int i=0;i<vert_count;i++)
+		{
+			memcpy(ProjectionVertice[i].I,modelVertice[i].color,3*sizeof(double));
 		}
 	}
 }
 
-void myRenderer::subRasterization(Vertex **v,int x, int y)
+void myRenderer::subRasterization(Vertex **v,int x, int y, int ModelVertexIndex[3])
 {
 	RGBQUAD RGB;
 	Vector origin(x,y,0);
@@ -404,9 +569,18 @@ void myRenderer::subRasterization(Vertex **v,int x, int y)
 		p[i]=p[i]-origin;
 	}
 
+
+	Vector normal[3];
 	for(int i=0;i<3;i++)
 	{
-		c[i]=norm(cross(p[(1+i)%3],p[(2+i)%3]));
+		normal[i]=cross(p[(1+i)%3],p[(2+i)%3]);
+	}
+	for(int i=0;i<3;i++)
+	{
+		if(dot(normal[(1+i)%3],normal[(2+i)%3])<0)
+			return;
+		else
+			c[i]=norm(normal[i]);
 	}
 
 	double area=1/(c[0]+c[1]+c[2]);
@@ -417,7 +591,9 @@ void myRenderer::subRasterization(Vertex **v,int x, int y)
 
 	if(options & DEPTH_TEST)
 	{
-		IllumWithDepth tmp=c[0]*IllumWithDepth(*v[0])+c[1]*IllumWithDepth(*v[1])+c[2]*IllumWithDepth(*v[2]);
+		IllumWithDepth tmp=c[0]*IllumWithDepth(modelVertice[ModelVertexIndex[0]],v[0]->pos.a[2])+
+						   c[1]*IllumWithDepth(modelVertice[ModelVertexIndex[1]],v[1]->pos.a[2])+
+						   c[2]*IllumWithDepth(modelVertice[ModelVertexIndex[2]],v[2]->pos.a[2]);
 		mergeBuffer(x,y,tmp);
 	}
 	else
@@ -443,7 +619,7 @@ void myRenderer::Rasterization(const Triangle &t)
 	Vertex v1=ProjectionVertice[t.vert[1]];
 	Vertex v2=ProjectionVertice[t.vert[2]];
 
-	//v0.pos.a[2]=v1.pos.a[2]=v2.pos.a[2]=0;
+	int Index[3];
 
 	int label=0;
 	if(v0.pos.a[0] > v1.pos.a[0])
@@ -451,6 +627,7 @@ void myRenderer::Rasterization(const Triangle &t)
 	if(v0.pos.a[0] > v2.pos.a[0])
 		label++;
 	v[label]=&v0;
+	Index[0]=t.vert[label];
 
 	int label1=0;
 	if(v1.pos.a[0] > v0.pos.a[0])
@@ -458,44 +635,64 @@ void myRenderer::Rasterization(const Triangle &t)
 	if(v1.pos.a[0] > v2.pos.a[0])
 		label1++;
 	v[label1]=&v1;
+	Index[1]=t.vert[label1];
 
 	v[3-label1-label]=&v2;
+	Index[2]=t.vert[3-label1-label];
 
-	double m1=(v[1]->pos.a[1]-v[0]->pos.a[1])/(v[1]->pos.a[0]-v[0]->pos.a[0]);
-	double m2=(v[2]->pos.a[1]-v[0]->pos.a[1])/(v[2]->pos.a[0]-v[0]->pos.a[0]);
-	double m3=(v[2]->pos.a[1]-v[1]->pos.a[1])/(v[2]->pos.a[0]-v[1]->pos.a[0]);
 
 	double y1=v[0]->pos.a[1];
 	double y2=y1;
-	int sign=(m2-m1)/fabs(m2-m1);
+
+	int sign;
 
 	RGBQUAD RGB={0};
 	
-	//Red.rgbRed=255;
 
-	for(int x=round(v[0]->pos.a[0]);x<round(v[1]->pos.a[0]);x++)
+
+	int xmin=max(-halfwidth,round(v[0]->pos.a[0])-1);
+	double xmid=min(halfwidth,v[1]->pos.a[0]);
+	int xmax=min(halfwidth,round(v[2]->pos.a[0])+1);
+	for(int x=xmin;x<xmid;x++)
 	{
-		for(int y=round(y1);y!=round(y2);y+=sign)
+		if(cutLine(v[0]->pos,v[1]->pos,x,y1) && cutLine(v[0]->pos,v[2]->pos,x,y2))
 		{
-			subRasterization(v,x,y);
+			if(y1<-halfheight) 
+				y1=-halfheight;
+			if(y1>halfheight) 
+				y1=halfheight;
+			if(y2<-halfheight) 
+				y2=-halfheight;
+			if(y2>halfheight) 
+				y2=halfheight;
+			sign=(y2-y1)/fabs(y2-y1);
+			for(int y=round(y1)-2*sign;y!=round(y2)+2*sign;y+=sign)
+			{
+				subRasterization(v,x,y,Index);
+			}
 		}
 
-		y1+=m1;
-		y2+=m2;
-
-		sign=(y2-y1)/fabs(y2-y1);
 	}
 
-	for(int x=round(v[1]->pos.a[0]);x<round(v[2]->pos.a[0]);x++)
+	for(int x=xmid;x<xmax;x++)
 	{
-		for(int y=round(y1);y!=round(y2);y+=sign)
+		if(cutLine(v[1]->pos,v[2]->pos,x,y1) && cutLine(v[0]->pos,v[2]->pos,x,y2))
 		{
-			subRasterization(v,x,y);
+			if(y1<-halfheight) 
+				y1=-halfheight;
+			if(y1>halfheight) 
+				y1=halfheight;
+			if(y2<-halfheight) 
+				y2=-halfheight;
+			if(y2>halfheight) 
+				y2=halfheight;
+			sign=(y2-y1)/fabs(y2-y1);
+			for(int y=round(y1)-2*sign;y!=round(y2)+2*sign;y+=sign)
+			{
+				subRasterization(v,x,y,Index);
+			}
 		}
 
-		y1+=m3;
-		y2+=m2;
-		sign=(y2-y1)/fabs(y2-y1);
 	}
 
 

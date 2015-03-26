@@ -222,9 +222,9 @@ Matrix4 Matrix4::T()
 {
 	Matrix4 tmp;
 
-	for(int i=0;i<4;i++)
+	for(int i=0;i<3;i++)
 	{
-		for(int j=0;j<4;j++)
+		for(int j=0;j<3;j++)
 		{
 			tmp.a[i][j]=a[j][i];
 		}
@@ -267,7 +267,7 @@ Matrix4 Matrix4::operator *(const Matrix4 &x)
 {
 	Matrix4 tmp;
 
-	for(int i=0;i<4;i++)
+	for(int i=0;i<3;i++)
 	{
 		for(int j=0;j<4;j++)
 		{
@@ -359,10 +359,13 @@ Vector4 Matrix4::operator *(const Vector4 &v)
 	}
 
 	double c=1.0/tmp.a[3];
+	//if(fabs(c)>0.2)
+	//	c=0.2;
 	for(int i=0;i<4;i++)
 	{
 		tmp.a[i]*=c;
 	}
+	tmp.a[3]=1;
 
 	return tmp;
 }

@@ -104,6 +104,8 @@ private:
 	double a[4][4];
 };
 
+const Matrix4 IdentityMatrix(IDENTITY);
+
 
 Vector4 operator +(const Vector4 &x, const Vector4 &y);
 Vector4 operator -(const Vector4 &x, const Vector4 &y);

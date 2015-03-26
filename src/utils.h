@@ -55,11 +55,11 @@ typedef struct makeBuffer
 
 	makeBuffer(){}
 
-	makeBuffer(const Vertex &v)
+	makeBuffer(const Vertex &v, double Depth)
 	{
 		memcpy(I,v.I,3*sizeof(double));
 		memcpy(alpha,v.mat.alpha,3*sizeof(double));
-		depth=v.pos.a[2];
+		depth=Depth;
 	}
 } IllumWithDepth;
 
@@ -75,6 +75,8 @@ Material newMaterial(double Ka, double Kd, double Ks, double T=0, double n=1.001
 
 Vertex operator + (const Vertex &v1, const Vertex &v2);
 Vertex operator * (double c, const Vertex &v2);
+
+bool cutLine(const Vector &v1, const Vector &v2, int x, double &targetY);
 
 IllumWithDepth operator + (const IllumWithDepth &v1, const IllumWithDepth &v2);
 IllumWithDepth operator * (double c, const IllumWithDepth &v2);

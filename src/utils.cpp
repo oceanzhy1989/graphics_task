@@ -93,3 +93,12 @@ IllumWithDepth operator * (double c, const IllumWithDepth &v2)
 
 	return tmp;
 }
+
+bool cutLine(const Vector &v1, const Vector &v2, int x, double &targetY)
+{
+	if(x<v1.a[0] || x>v2.a[0])
+		return false;
+
+	targetY=v1.a[1]+(v2.a[1]-v1.a[1])*(x-v1.a[0])/(v2.a[0]-v1.a[0]);
+	return true;
+}
