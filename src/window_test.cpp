@@ -1,19 +1,22 @@
 // window_test.cpp : 定义应用程序的入口点。
 //
-#pragma comment(linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )
-#include "windows.h"
+
+#include "stdafx.h"
+#include "window_test.h"
 #include "camera.h"
 #include "graphicsAPI.h"
 #include "utils.h"
 #include "myRenderer.h"
+#include "Controller.h"
 
 #define MAX_LOADSTRING 100
-#define IDM_EXIT	105
 
 // 全局变量:
 HINSTANCE hInst;								// 当前实例
 TCHAR szTitle[MAX_LOADSTRING];					// 标题栏文本
 TCHAR szWindowClass[MAX_LOADSTRING];			// 主窗口类名
+
+Controller mycontroller;
 
 // 此代码模块中包含的函数的前向声明:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
@@ -21,7 +24,7 @@ BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
-int WINAPI WinMain(HINSTANCE hInstance,
+int APIENTRY _tWinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
                      LPTSTR    lpCmdLine,
                      int       nCmdShow)
@@ -34,7 +37,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	HACCEL hAccelTable;
 
 	// 初始化全局字符串
-
+	LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
+	LoadString(hInstance, IDC_WINDOW_TEST, szWindowClass, MAX_LOADSTRING);
 	MyRegisterClass(hInstance);
 
 	// 执行应用程序初始化:
@@ -43,6 +47,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 		return FALSE;
 	}
 
+	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_WINDOW_TEST));
 
 	// 主消息循环:
 	while (GetMessage(&msg, NULL, 0, 0))
@@ -83,9 +88,12 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	wcex.cbClsExtra		= 0;
 	wcex.cbWndExtra		= 0;
 	wcex.hInstance		= hInstance;
+	wcex.hIcon			= LoadIcon(hInstance, MAKEINTRESOURCE(IDI_WINDOW_TEST));
 	wcex.hCursor		= LoadCursor(NULL, IDC_ARROW);
 	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
+	wcex.lpszMenuName	= MAKEINTRESOURCE(IDC_WINDOW_TEST);
 	wcex.lpszClassName	= szWindowClass;
+	wcex.hIconSm		= LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
 	return RegisterClassEx(&wcex);
 }
@@ -135,7 +143,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	int wmId, wmEvent;
 	PAINTSTRUCT ps;
 	HDC hdc;
+	RECT rt;
 
+	
 	switch (message)
 	{
 	case WM_COMMAND:
@@ -144,6 +154,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// 分析菜单选择:
 		switch (wmId)
 		{
+		case IDM_ABOUT:
+			DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+			break;
 		case IDM_EXIT:
 			DestroyWindow(hWnd);
 			break;
@@ -153,8 +166,42 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_PAINT:
 		hdc = BeginPaint(hWnd, &ps);
+		GetClientRect(hWnd, &rt);
+
+		mycontroller.init(rt.right-rt.left,rt.bottom-rt.top,hdc);
+
+		mycontroller.setDC(GetDC(hWnd));
+		mycontroller.display();
 		// TODO: 在此添加任意绘图代码...
 		EndPaint(hWnd, &ps);
+		break;
+	case WM_MOUSEMOVE:
+		mycontroller.mouseMove(lParam);
+		mycontroller.display();
+		break;
+	case WM_RBUTTONDOWN:
+		mycontroller.setMouseState(BUTTON_RIGHT,true,lParam);
+		break;
+	case WM_RBUTTONUP:
+		mycontroller.setMouseState(BUTTON_RIGHT,false,lParam);
+		break;
+	case WM_KEYDOWN:  
+        switch (wParam)  
+        {  
+			case 'W': 
+				mycontroller.setKeyState('W',true);
+				mycontroller.display();
+				break;
+		}
+		break;
+	case WM_KEYUP:  
+        switch (wParam)  
+        {  
+			case 'W': 
+				mycontroller.setKeyState('W',false);
+				mycontroller.display();
+				break;
+		}
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
