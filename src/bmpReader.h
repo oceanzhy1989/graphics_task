@@ -35,7 +35,14 @@ public:
 	bool saveBmp(char *bmpName, unsigned char *imgBuf, int width, int height, 
 					int biBitCount, RGBQUAD *pColorTable);
 
-	floatColor readPixel(double u, double v);
+	inline floatColor readPixel(double u, double v)
+	{
+		int index=(int)(u*bmpWidth)+(int)(v*bmpHeight)*bmpWidth;
+		
+		return fBuf[index];
+	}
+	floatColor readPixel1(double u, double v);
+
 
 	void writeTxt(char *txtName);
 	int read8Pix(int x,int y);  //读取8位图的像素值
@@ -47,6 +54,8 @@ public:
 
 private:
 	 unsigned char *pBmpBuf;//读入图像数据的指针
+	 floatColor *fBuf;
+
 	 int bmpWidth;//图像的宽
 	 int bmpHeight;//图像的高
 	 RGBQUAD *pColorTable;//颜色表指针

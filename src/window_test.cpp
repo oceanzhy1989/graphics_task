@@ -192,6 +192,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				mycontroller.setKeyState('W',true);
 				mycontroller.display();
 				break;
+		
+			case 'S': 
+				mycontroller.setKeyState('S',true);
+				mycontroller.display();
+				break;
+ 
+			case VK_SPACE: 
+				mycontroller.setKeyState(VK_SPACE,false);
+				mycontroller.display();
+				break;
 		}
 		break;
 	case WM_KEYUP:  
@@ -199,6 +209,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {  
 			case 'W': 
 				mycontroller.setKeyState('W',false);
+				mycontroller.display();
+				break;
+ 
+			case 'S': 
+				mycontroller.setKeyState('S',false);
+				mycontroller.display();
+				break;
+
+			case VK_SPACE: 
+				mycontroller.setKeyState(VK_SPACE,false);
 				mycontroller.display();
 				break;
 		}

@@ -67,6 +67,8 @@ private:
 	int halfwidth,halfheight;
 
 	list<IllumWithDepth> *bufferMap;
+	IllumWithDepth *bufferMap_single;
+	IllumWithDepth *bufferMap_single_backup;
 
 	Camera *m_camera;
 	Matrix4 *m_ModelViewMatrix;

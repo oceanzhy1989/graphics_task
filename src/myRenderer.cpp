@@ -21,14 +21,11 @@ myRenderer::myRenderer(int winWidth, int winHeight, HDC hDC, int xoffset, int yo
 	modelVertice.reserve(100);
 	modelTriangles.reserve(100);
 
-	if(options & DEPTH_TEST)
-	{
-		bufferMap=new list<IllumWithDepth>[width*height];
-	}
-	else
-	{
-		bufferMap=NULL;
-	}
+
+	bufferMap=NULL;
+	bufferMap_single=NULL;
+	bufferMap_single_backup=NULL;
+
 
 }
 
@@ -37,7 +34,16 @@ myRenderer::~myRenderer()
 	delete m_camera;
 	if(options & DEPTH_TEST)
 	{
-		delete[] bufferMap;
+		if(bufferMap)
+		{	
+			delete[] bufferMap;
+		}
+
+		if(bufferMap_single)
+		{
+			delete[] bufferMap_single;
+			delete[] bufferMap_single_backup;
+		}
 	}
 }
 
@@ -63,9 +69,32 @@ void myRenderer::SetOptions(int Option)
 {
 	this->options=Option;
 
-	if((options & DEPTH_TEST) && !bufferMap)
+	if(options & DEPTH_TEST)
 	{
-		bufferMap=new list<IllumWithDepth>[width*height];
+		if((options & ENABLE_A_BUFFER) && !bufferMap)
+		{
+			bufferMap=new list<IllumWithDepth>[width*height];
+			bufferMap_single=NULL;
+		}
+		else
+		{
+			if(bufferMap_single)
+				return;
+
+			bufferMap=NULL;
+			bufferMap_single=new IllumWithDepth[width*height];
+			bufferMap_single_backup=new IllumWithDepth[width*height];
+
+			for(int i=0;i<width;i++)
+			{
+				for(int j=0;j<height;j++)
+				{
+					bufferMap_single_backup[i+j*width].depth=1e100;
+				}
+			}
+
+			memcpy(bufferMap_single,bufferMap_single_backup,width*height*sizeof(IllumWithDepth));
+		}
 	}
 }
 
@@ -126,9 +155,6 @@ int myRenderer::Render()
 	{
 		if(options & ENABLE_A_BUFFER)
 		{
-		}
-		else
-		{
 			for(int i=0;i<width;i++)
 			{
 				for(int j=0;j<height;j++)
@@ -148,6 +174,25 @@ int myRenderer::Render()
 					}
 				}
 			}
+		}
+		else
+		{
+			for(int i=0;i<width;i++)
+			{
+				for(int j=0;j<height;j++)
+				{
+					IllumWithDepth *b=bufferMap_single+i+j*width;					
+
+					RGBQUAD RGB;
+					RGB.rgbBlue=b->I[2]*255;
+					RGB.rgbGreen=b->I[1]*255;
+					RGB.rgbRed=b->I[0]*255;
+
+					graphicsAPI::getInstance()->storePixel(i,j,RGB);
+
+				}
+			}
+			
 		}
 	}
 
@@ -357,13 +402,23 @@ void myRenderer::finishAdd()
 
 void myRenderer::clearBuffer()
 {
-	for(int i=0;i<width;i++)
+	if(options  & DEPTH_TEST)
 	{
-		for(int j=0;j<height;j++)
+		if(options & ENABLE_A_BUFFER)
 		{
-			list<IllumWithDepth> *p=bufferMap+i+j*width;
-			
-			p->clear();
+			for(int i=0;i<width;i++)
+			{
+				for(int j=0;j<height;j++)
+				{
+					list<IllumWithDepth> *p=bufferMap+i+j*width;
+					
+					p->clear();
+				}
+			}
+		}
+		else
+		{
+			memcpy(bufferMap_single,bufferMap_single_backup,width*height*sizeof(IllumWithDepth));
 		}
 	}
 
@@ -378,24 +433,32 @@ void myRenderer::mergeBuffer(int x, int y, const IllumWithDepth &v)
 	if(x<0 || x>=width || y<0 || y>=height ) 
 		return;
 
-	list<IllumWithDepth> *p=bufferMap+x+y*width;
+	if(options & ENABLE_A_BUFFER)
+	{
+		list<IllumWithDepth> *p=bufferMap+x+y*width;
 
-	if(p->empty())
-	{
-		p->push_front(v);
-	}
-	else
-	{
-		if(options & ENABLE_A_BUFFER)
+		if(p->empty())
 		{
+			p->push_front(v);
 		}
 		else
 		{
-			if(v.depth<(p->begin())->depth)
+
 			{
-				*(p->begin())=v;
+				if(v.depth<(p->begin())->depth)
+				{
+					*(p->begin())=v;
+				}
 			}
+			
 		}
+	}
+	else
+	{
+		IllumWithDepth *p=bufferMap_single+x+y*width;
+
+		if(v.depth<p->depth)
+			*p=v;
 		
 	}
 }

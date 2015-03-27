@@ -26,19 +26,12 @@ Controller::~Controller()
 
 void Controller::init(int winWidth, int winHeight, HDC hdc)
 {
-	//int tex_ok=reader[0].readBmp("../../data/grass.bmp");
-	//
-	//if(tex_ok)
-	//{
-	//	floatColor mycolor=reader.readPixel(0.2,0.5);
-	//}
-
 	if(!ren)
 	{
 		ren=new myRenderer(winWidth,winHeight,hdc);
 
 		ren->SetOptions(FILL | DEPTH_TEST | TEXTURE_MAPPING);
-		ren->loadNewTexture("../../data/grass.bmp");
+		ren->loadNewTexture("data/grass.bmp");
 
 		Material m1;
 		m1=newMaterial(0.02,0.151,0.2,0,1,0.8);
@@ -85,8 +78,8 @@ void Controller::init(int winWidth, int winHeight, HDC hdc)
 		ren->finishAdd();
 
 
-		ren->ReadSTL("H:/zhy's/projects/CG/graphics_task/build/zhy2.stl",m1,newColor);
-		ren->ReadSTL("H:/zhy's/projects/CG/graphics_task/build/traffic_cone.stl",m1,newColor,Matrix4(SCALE,8));
+		ren->ReadSTL("data/zhy2.stl",m1,newColor);
+		ren->ReadSTL("data/traffic_cone.stl",m1,newColor,Matrix4(SCALE,8));
 		/*ren->AddVertex(Vector(0,0),m1,vRed,true);
 		ren->AddVertex(Vector(200,0),m1,vGreen,true);
 		ren->AddVertex(Vector(200,200),m1,vBlue,true);
@@ -195,6 +188,10 @@ void Controller::display()
 	if(SisDown)
 	{
 		ren->getCamera()->setPosition(pos-50*direction);
+	}
+	if(SpaceIsDown)
+	{
+		ren->getCamera()->setPosition(pos+Vector(0,0,50));
 	}
 
 	ren->Render();

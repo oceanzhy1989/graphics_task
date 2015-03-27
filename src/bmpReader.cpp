@@ -3,6 +3,7 @@
 MYBITMAP::MYBITMAP()
 {
  pBmpBuf=NULL;
+ fBuf=NULL;
  bmpWidth=0;
  bmpHeight=0;
  pColorTable=NULL;
@@ -51,11 +52,24 @@ int MYBITMAP:: readBmp(const char *bmpName)
     //申请位图数据所需要的空间，读位图数据进内存
 
     pBmpBuf=new unsigned char[lineByte * bmpHeight];
+	fBuf=new floatColor[lineByte * bmpHeight / 3];
 
     fread(pBmpBuf,1,lineByte * bmpHeight,fp);
 
     fclose(fp);//关闭文件
  printf("Read success!\n");
+
+	for(int i=0;i<bmpWidth;i++)
+	{
+		for(int j=0;j<bmpHeight;j++)
+		{
+			int index=i+bmpWidth*j;
+			RGB rgb=readPix(i,j);
+			fBuf[index].color[0]=rgb.RED/256.0;
+			fBuf[index].color[1]=rgb.GREEN/256.0;
+			fBuf[index].color[2]=rgb.BLUE/256.0;
+		}
+	}
 
     return 1;//读取文件成功
 }
@@ -164,8 +178,9 @@ bool MYBITMAP::saveBmp(char *bmpName, unsigned char *imgBuf, int width, int heig
 
 }
 
-floatColor MYBITMAP::readPixel(double u, double v)
+floatColor MYBITMAP::readPixel1(double u, double v)
 {
+	//int index=u*bmpWidth+v*bmpHeight*bmpWidth;
 	RGB mycolor=readPix(u*bmpWidth,v*bmpHeight);
 
 	floatColor tmp;
@@ -174,6 +189,7 @@ floatColor MYBITMAP::readPixel(double u, double v)
 	tmp.color[2]=mycolor.BLUE/256.0;
 
 	return tmp;
+	//return fBuf[index];
 }
 
 void MYBITMAP::writeTxt(char *txtName)  //将图片的相关信息写入txt文件中
