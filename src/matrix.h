@@ -164,6 +164,7 @@ double norm(const Vector4 &x);
 Vector4 unitof(const Vector4 &x);
 
 Vector4 rotate(const Vector4 &v, const Vector4 &axis, double rad);//返回将向量v沿着axis轴沿着左手螺旋方向旋转rad弧度后的向量
+Vector4 findReflectVector(const Vector4 &v, const Vector4 &n);
 
 
 

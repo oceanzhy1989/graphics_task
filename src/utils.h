@@ -34,6 +34,8 @@ typedef struct
 	Material mat;
 	int tex_id;
 	TextureCoord tex_coord;
+
+	unsigned char rcode;//ÇøÓòÂë
 } Vertex;
 
 typedef struct
@@ -84,6 +86,11 @@ inline int round(double x)
 	return int(x+0.5);
 }
 
+inline unsigned char sgn(const double &x)
+{
+	return x>0?1:0;
+}
+
 
 
 
@@ -93,6 +100,7 @@ Vertex operator + (const Vertex &v1, const Vertex &v2);
 Vertex operator * (double c, const Vertex &v2);
 
 bool cutLine(const Vector &v1, const Vector &v2, int x, double &targetY);
+bool lineinsblock(const Vector &startv, const Vector &endv, double bound[], double &tNear, double &tFar);
 
 IllumWithDepth operator + (const IllumWithDepth &v1, const IllumWithDepth &v2);
 IllumWithDepth operator * (double c, const IllumWithDepth &v2);

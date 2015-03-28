@@ -20,6 +20,7 @@ public:
 	void setKeyState(char key, bool state);
 	void setMouseState(int button, bool state, LPARAM lParam);
 	void mouseMove(LPARAM lParam);
+	void scrollCamera(int dist);
 
 	
 

@@ -39,41 +39,51 @@ void Controller::init(int winWidth, int winHeight, HDC hdc)
 
 		Vertex texv1,texv2,texv3,texv4;
 
-		texv1.triangle_count=0;
-		texv1.tex_id=0;
-		texv1.tex_coord.u=0.1;
-		texv1.tex_coord.v=0.1;
-		texv1.mat=m1;
-		texv1.pos=Vector(-300,300,-10);
+		double delt=0.049;
+		double rectsize=50;
+		int t_id=0;
+		for(int i=-20;i<20;i++)
+		{
+			for(int j=-20;j<20;j++)
+			{
+				texv1.triangle_count=0;
+				texv1.tex_id=0;
+				texv1.tex_coord.u=0.451+(i%8)*delt;
+				texv1.tex_coord.v=0.451+(j%8)*delt;
+				texv1.mat=m1;
+				texv1.pos=Vector(rectsize*i,rectsize*j,-10);
 
-		texv2.triangle_count=0;
-		texv2.tex_id=0;
-		texv2.tex_coord.u=0.9;
-		texv2.tex_coord.v=0.1;
-		texv2.mat=m1;
-		texv2.pos=Vector(300,300,-10);
+				texv2.triangle_count=0;
+				texv2.tex_id=0;
+				texv2.tex_coord.u=0.451+delt+(i%8)*delt;
+				texv2.tex_coord.v=0.451+(j%8)*delt;
+				texv2.mat=m1;
+				texv2.pos=Vector(rectsize*(i+1),rectsize*j,-10);
 
-		texv3.triangle_count=0;
-		texv3.tex_id=0;
-		texv3.tex_coord.u=0.9;
-		texv3.tex_coord.v=0.9;
-		texv3.mat=m1;
-		texv3.pos=Vector(300,-300,-10);
+				texv3.triangle_count=0;
+				texv3.tex_id=0;
+				texv3.tex_coord.u=0.451+delt+(i%8)*delt;
+				texv3.tex_coord.v=0.451+delt+(j%8)*delt;
+				texv3.mat=m1;
+				texv3.pos=Vector(rectsize*(i+1),rectsize*(j-1),-10);
 
-		texv4.triangle_count=0;
-		texv4.tex_id=0;
-		texv4.tex_coord.u=0.1;
-		texv4.tex_coord.v=0.9;
-		texv4.mat=m1;
-		texv4.pos=Vector(-300,-300,-10);
+				texv4.triangle_count=0;
+				texv4.tex_id=0;
+				texv4.tex_coord.u=0.451+(i%8)*delt;
+				texv4.tex_coord.v=0.451+delt+(j%8)*delt;
+				texv4.mat=m1;
+				texv4.pos=Vector(rectsize*i,rectsize*(j-1),-10);
 
-		ren->AddVertex(texv1);
-		ren->AddVertex(texv2);
-		ren->AddVertex(texv3);
-		ren->AddVertex(texv4);
+				ren->AddVertex(texv1);
+				ren->AddVertex(texv2);
+				ren->AddVertex(texv3);
+				ren->AddVertex(texv4);
 
-		ren->AddTriangle(0,2,1);
-		ren->AddTriangle(0,3,2);
+				ren->AddTriangle(2+4*t_id,4+4*t_id,3+4*t_id);
+				ren->AddTriangle(2+4*t_id,5+4*t_id,4+4*t_id);
+				t_id++;
+			}
+		}
 
 		ren->finishAdd();
 
@@ -89,7 +99,7 @@ void Controller::init(int winWidth, int winHeight, HDC hdc)
 		ren->AddTriangle(0,1,3);
 		ren->AddTriangle(0,3,2);
 		ren->AddTriangle(1,2,3);*/
-		double Solar[3]={10,10,10};
+		double Solar[3]={20,20,20};
 		ren->setAmbient(3,3,3);
 		ren->setLightSource(Vector(-1,-1,-1),Solar);
 		ren->getCamera()->drawBack(500);
@@ -166,6 +176,11 @@ void Controller::mouseMove(LPARAM lParam)
 	}
 }
 
+void Controller::scrollCamera(int dist)
+{
+	ren->getCamera()->drawBack(dist);
+}
+
 void Controller::display()
 {
 	if(!ren)
@@ -191,7 +206,7 @@ void Controller::display()
 	}
 	if(SpaceIsDown)
 	{
-		ren->getCamera()->setPosition(pos+Vector(0,0,50));
+		ren->getCamera()->setPosition(pos+Vector(0,0,30));
 	}
 
 	//while(1)

@@ -421,3 +421,10 @@ Vector4 rotate(const Vector4 &v, const Vector4 &axis, double rad)
 	return q;
 }
 
+Vector4 findReflectVector(const Vector4 &v, const Vector4 &n)
+{
+	Vector normal=dot(v,n)*n;
+
+	return 2*normal-v;
+}
+

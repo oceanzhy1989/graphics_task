@@ -5,6 +5,12 @@
 #include <fstream>
 using namespace std;
 
+const unsigned char bit0=1;
+const unsigned char bit1=1<<1;
+const unsigned char bit2=1<<2;
+const unsigned char bit3=1<<3;
+const unsigned char bit4=1<<4;
+const unsigned char bit5=1<<5;
 
 myRenderer::myRenderer(int winWidth, int winHeight, HDC hDC, int xoffset, int yoffset) : options(DRAW_BOARDER),m_hdc(hDC),xoff(xoffset),yoff(yoffset)
 {
@@ -25,6 +31,10 @@ myRenderer::myRenderer(int winWidth, int winHeight, HDC hDC, int xoffset, int yo
 	bufferMap=NULL;
 	bufferMap_single=NULL;
 	bufferMap_single_backup=NULL;
+
+	Vertex tmp;
+	modelVertice.push_back(tmp);
+	modelVertice.push_back(tmp);
 
 
 }
@@ -61,7 +71,7 @@ void myRenderer::setAmbient(double red, double green, double blue)
 
 void myRenderer::setLightSource(Vector direction, double I[3])
 {
-	lSource.direction=direction;
+	lSource.direction=unitof(direction);
 	memcpy(lSource.I,I,3*sizeof(double));
 }
 
@@ -95,6 +105,28 @@ void myRenderer::SetOptions(int Option)
 
 			memcpy(bufferMap_single,bufferMap_single_backup,width*height*sizeof(IllumWithDepth));
 		}
+	}
+}
+
+int myRenderer::cut(const Triangle &t, double z_front, double z_back)
+{
+	Vertex *v[3]={&ProjectionVertice[t.vert[0]],&ProjectionVertice[t.vert[1]],&ProjectionVertice[t.vert[2]]};
+
+	double z0=getCamera()->getZ0();
+
+	unsigned char rcode[3]={
+		(sgn(-halfwidth-v[0]->pos.a[0])*bit0) | (sgn(v[0]->pos.a[0]-halfwidth)*bit1) | (sgn(-halfheight-v[0]->pos.a[1])*bit2) | (sgn(v[0]->pos.a[1]-halfheight)*bit3) | (sgn(z_front+z0-v[0]->pos.a[2])*bit4) | (sgn(v[0]->pos.a[2]-z_back-z0)*bit5),
+		(sgn(-halfwidth-v[1]->pos.a[0])*bit0) | (sgn(v[1]->pos.a[0]-halfwidth)*bit1) | (sgn(-halfheight-v[1]->pos.a[1])*bit2) | (sgn(v[1]->pos.a[1]-halfheight)*bit3) | (sgn(z_front+z0-v[1]->pos.a[2])*bit4) | (sgn(v[1]->pos.a[2]-z_back-z0)*bit5),
+		(sgn(-halfwidth-v[2]->pos.a[0])*bit0) | (sgn(v[2]->pos.a[0]-halfwidth)*bit1) | (sgn(-halfheight-v[2]->pos.a[1])*bit2) | (sgn(v[2]->pos.a[1]-halfheight)*bit3) | (sgn(z_front+z0-v[2]->pos.a[2])*bit4) | (sgn(v[2]->pos.a[2]-z_back-z0)*bit5)
+	};
+
+	if((rcode[0] & rcode[1] & rcode[2]) != 0)
+		return 0;
+	if((rcode[0] | rcode[1] | rcode[2]) == 0)
+		return 1;
+	else
+	{
+		return 2;
 	}
 }
 
@@ -145,10 +177,16 @@ int myRenderer::Render()
 		}
 	}
 
+	int z_back=width<<2;
+	int z_front=halfwidth>>1;
 	if(options & FILL)
 	{
 		for(int i=0;i<tri_count;i++)
+		{
+			if(cut(modelTriangles[i],z_front,z_back)==0)
+				continue;
 			this->Rasterization(modelTriangles[i]);
+		}
 	}
 
 	if(options & DEPTH_TEST)
@@ -166,9 +204,13 @@ int myRenderer::Render()
 						b=&*(p->begin());
 
 						RGBQUAD RGB;
-						RGB.rgbBlue=b->I[2]*255;
-						RGB.rgbGreen=b->I[1]*255;
-						RGB.rgbRed=b->I[0]*255;
+						RGB.rgbBlue=max(255,b->I[2]*255);
+						RGB.rgbGreen=max(255,b->I[1]*255);
+						RGB.rgbRed=max(255,b->I[0]*255);
+
+						//RGB.rgbBlue=min(255,RGB.rgbBlue);
+						//RGB.rgbGreen=min(255,RGB.rgbGreen);
+						//RGB.rgbRed=min(255,RGB.rgbRed);
 
 						graphicsAPI::getInstance()->storePixel(i,j,RGB);
 					}
@@ -187,6 +229,12 @@ int myRenderer::Render()
 					RGB.rgbBlue=b->I[2]*255;
 					RGB.rgbGreen=b->I[1]*255;
 					RGB.rgbRed=b->I[0]*255;
+
+					//RGB.rgbBlue=min(255,RGB.rgbBlue);
+					//RGB.rgbGreen=min(255,RGB.rgbGreen);
+					//RGB.rgbRed=min(255,RGB.rgbRed);
+
+					
 
 					graphicsAPI::getInstance()->storePixel(i,j,RGB);
 
@@ -589,6 +637,7 @@ void myRenderer::calNormalVector(Triangle *t)
 void myRenderer::calIllumination()
 {
 	int vert_count=modelVertice.size();
+	Vector vz0=getCamera()->getPosition()+getCamera()->getFacingDirection()*getCamera()->getZ0();
 
 	if(options & DEPTH_TEST)
 	{
@@ -601,11 +650,22 @@ void myRenderer::calIllumination()
 
 			
 			double coe=-dot(lSource.direction,modelVertice[i].n);
+			if(coe<0)
+				coe=0;
+			//double reflectv=dot(findReflectVector(unitof(modelVertice[i].pos-vz0),modelVertice[i].n),lSource.direction);
+			//double coe_reflect;
+			//if(reflectv>0)
+			//	coe_reflect=pow(reflectv,modelVertice[i].mat.roughn);
+			//else
+			//	coe_reflect=0;
+
 			for(int k=0;k<3;k++)
 			{
 				Id[k]=coe*lSource.I[k];
-				if(Id[k]<0)
-					Id[k]=0;
+
+				//Ihigh[k]=coe_reflect*lSource.I[k];
+				//if(Ihigh[k]<0)
+				//	Ihigh[k]=0;
 
 				Material *mat=&modelVertice[i].mat;
 				double newI=(mat->Kd)*Id[k]+(mat->Ka)*ambient[k]+(mat->Ks)*Ihigh[k];
@@ -761,7 +821,7 @@ void myRenderer::Rasterization(const Triangle &t)
 				y2=-halfheight;
 			if(y2>halfheight) 
 				y2=halfheight;
-			sign=(y2-y1)/fabs(y2-y1);
+			sign=(y2-y1)>0?1:-1;
 			for(int y=round(y1)-2*sign;y!=round(y2)+2*sign;y+=sign)
 			{
 				subRasterization(v,x,y,Index);
@@ -782,7 +842,7 @@ void myRenderer::Rasterization(const Triangle &t)
 				y2=-halfheight;
 			if(y2>halfheight) 
 				y2=halfheight;
-			sign=(y2-y1)/fabs(y2-y1);
+			sign=(y2-y1)>0?1:-1;
 			for(int y=round(y1)-2*sign;y!=round(y2)+2*sign;y+=sign)
 			{
 				subRasterization(v,x,y,Index);

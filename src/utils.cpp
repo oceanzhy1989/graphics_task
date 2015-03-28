@@ -118,3 +118,55 @@ bool cutLine(const Vector &v1, const Vector &v2, int x, double &targetY)
 	targetY=v1.a[1]+(v2.a[1]-v1.a[1])*(x-v1.a[0])/(v2.a[0]-v1.a[0]);
 	return true;
 }
+
+
+bool lineinsblock(const Vector &startv, const Vector &endv, double bound[], double &tNear, double &tFar)
+{
+	double t[6];
+	double tnear[3],tfar[3];
+
+
+	for(int i=0;i<6;i++)
+	{
+		t[i]=(bound[i]-startv.a[i%3])/(endv.a[i%3]-startv.a[i%3]);
+	}
+
+	for(int i=0;i<3;i++)
+	{
+		if(t[i]<t[3+i])
+		{
+			tnear[i]=t[i];
+			tfar[i]=t[3+i];
+		}
+		else
+		{
+			tnear[i]=t[3+i];
+			tfar[i]=t[i];
+		}
+	}
+
+	if(tnear[1]>tnear[0])
+		tnear[0]=tnear[1];
+	if(tnear[2]>tnear[0])
+		tnear[0]=tnear[2];
+
+	if(tfar[1]<tfar[0])
+		tfar[0]=tfar[1];
+	if(tfar[2]<tfar[0])
+		tfar[0]=tfar[2];
+
+	if(tnear[0]>tfar[0])
+		return false;
+	if(tnear[0]<0 && tfar[0]<0)
+		return false;
+	else
+	{
+		tNear=tnear[0];
+		tFar=tfar[0];
+
+		if(tNear<0 && tFar>0)
+			return false;
+		return true;
+	}
+
+}

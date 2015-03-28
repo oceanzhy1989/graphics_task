@@ -144,6 +144,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	PAINTSTRUCT ps;
 	HDC hdc;
 	RECT rt;
+	short zDelta;
 
 	
 	switch (message)
@@ -185,6 +186,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_RBUTTONUP:
 		mycontroller.setMouseState(BUTTON_RIGHT,false,lParam);
 		break;
+	case WM_MOUSEWHEEL:
+		zDelta = (short)HIWORD(wParam);  
+		mycontroller.scrollCamera(-zDelta/2);
+		mycontroller.display();
+		break;
 	case WM_KEYDOWN:  
         switch (wParam)  
         {  
@@ -199,7 +205,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				break;
  
 			case VK_SPACE: 
-				mycontroller.setKeyState(VK_SPACE,false);
+				mycontroller.setKeyState(VK_SPACE,true);
 				mycontroller.display();
 				break;
 		}

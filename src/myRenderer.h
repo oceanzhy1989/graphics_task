@@ -38,6 +38,7 @@ public:
 	void SetOptions(int Option);
 	void calIllumination();
 	bool loadNewTexture(const char *tex_file_name);
+	int cut(const Triangle &t, double z_front, double z_back);//0(Íâ£©1£¨ÄÚ£©2£¨½»£©
 	int Render();
 
 	Camera *getCamera();
@@ -76,6 +77,8 @@ private:
 
 	vector<Vertex> modelVertice;
 	vector<Triangle> modelTriangles;
+	Triangle tmpTriangles[2];
+
 
 	vector<Vertex> modelViewVertice;
 	vector<Vertex> ProjectionVertice;
