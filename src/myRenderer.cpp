@@ -675,9 +675,13 @@ void myRenderer::subRasterization(Vertex **v,int x, int y, int ModelVertexIndex[
 
 	if(options & DEPTH_TEST)
 	{
-		IllumWithDepth tmp=c[0]*IllumWithDepth(modelVertice[ModelVertexIndex[0]],v[0]->pos.a[2])+
-						   c[1]*IllumWithDepth(modelVertice[ModelVertexIndex[1]],v[1]->pos.a[2])+
-						   c[2]*IllumWithDepth(modelVertice[ModelVertexIndex[2]],v[2]->pos.a[2]);
+		double z0=getCamera()->getZ0();
+		double coe[3]={1/(v[0]->pos.a[2]-z0),1/(v[1]->pos.a[2]-z0),1/(v[2]->pos.a[2]-z0)};
+		IllumWithDepth tmp=c[0]*IllumWithDepth(modelVertice[ModelVertexIndex[0]],v[0]->pos.a[2],coe[0])+
+						   c[1]*IllumWithDepth(modelVertice[ModelVertexIndex[1]],v[1]->pos.a[2],coe[1])+
+						   c[2]*IllumWithDepth(modelVertice[ModelVertexIndex[2]],v[2]->pos.a[2],coe[2]);
+		tmp*=z0/(tmp.depth-1);
+		
 
 		if((options & TEXTURE_MAPPING) && tmp.tex_id>=0 && tmp.tex_id<textures.size() )
 		{
@@ -719,7 +723,7 @@ void myRenderer::Rasterization(const Triangle &t)
 	if(v0.pos.a[0] > v2.pos.a[0])
 		label++;
 	v[label]=&v0;
-	Index[0]=t.vert[label];
+	Index[label]=t.vert[0];
 
 	int label1=0;
 	if(v1.pos.a[0] > v0.pos.a[0])
@@ -727,10 +731,10 @@ void myRenderer::Rasterization(const Triangle &t)
 	if(v1.pos.a[0] > v2.pos.a[0])
 		label1++;
 	v[label1]=&v1;
-	Index[1]=t.vert[label1];
+	Index[label1]=t.vert[1];
 
 	v[3-label1-label]=&v2;
-	Index[2]=t.vert[3-label1-label];
+	Index[3-label1-label]=t.vert[2];
 
 
 	double y1=v[0]->pos.a[1];

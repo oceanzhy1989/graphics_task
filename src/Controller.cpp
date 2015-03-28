@@ -194,6 +194,9 @@ void Controller::display()
 		ren->getCamera()->setPosition(pos+Vector(0,0,50));
 	}
 
+	//while(1)
+	//{
 	ren->Render();
 	ren->clearBuffer();
+	//}
 }

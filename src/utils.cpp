@@ -98,6 +98,18 @@ IllumWithDepth operator * (double c, const IllumWithDepth &v2)
 	return tmp;
 }
 
+//void operator *= ( IllumWithDepth &v, double c)
+//{
+//	v.depth*=c;
+//	v.tex_u*=c;
+//	v.tex_v*=c;
+//	for(int i=0;i<3;i++)
+//	{
+//		v.alpha[i]*=c;
+//		v.I[i]*=c;
+//	}
+//}
+
 bool cutLine(const Vector &v1, const Vector &v2, int x, double &targetY)
 {
 	if(x<v1.a[0] || x>v2.a[0])

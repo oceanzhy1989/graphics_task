@@ -31,7 +31,7 @@ void Camera::update()
 	Vector4 minusT=-getPosition();
 	m_ModelViewMatrix=m_CameraMatrix.getRotatePart().T()*Matrix4(TRANSLATE,minusT.a[0],minusT.a[1],minusT.a[2]);
 
-	double z0=screen_z-focalLength;
+	z0=screen_z-focalLength;
 
 	m_ProjectionMatrix.set(0,0,focalLength);
 	m_ProjectionMatrix.set(1,1,focalLength);

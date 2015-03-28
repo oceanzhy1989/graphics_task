@@ -62,16 +62,20 @@ typedef struct makeBuffer
 	double tex_u;
 	double tex_v;
 
+
 	makeBuffer(){}
 
-	makeBuffer(const Vertex &v, double Depth)
+	inline makeBuffer(const Vertex &v, double Depth, double coe)
 	{
-		memcpy(I,v.I,3*sizeof(double));
-		memcpy(alpha,v.mat.alpha,3*sizeof(double));
+		for(int i=0;i<3;i++)
+		{
+			I[i]=v.I[i]*coe;
+			alpha[i]=v.mat.alpha[i]*coe;
+		}
 		tex_id=v.tex_id;
-		tex_u=v.tex_coord.u;
-		tex_v=v.tex_coord.v;
-		depth=Depth;
+		tex_u=v.tex_coord.u*coe;
+		tex_v=v.tex_coord.v*coe;
+		depth=Depth*coe;
 	}
 } IllumWithDepth;
 
@@ -92,6 +96,17 @@ bool cutLine(const Vector &v1, const Vector &v2, int x, double &targetY);
 
 IllumWithDepth operator + (const IllumWithDepth &v1, const IllumWithDepth &v2);
 IllumWithDepth operator * (double c, const IllumWithDepth &v2);
+inline void operator *= ( IllumWithDepth &v, double c)
+{
+	v.depth*=c;
+	v.tex_u*=c;
+	v.tex_v*=c;
+	for(int i=0;i<3;i++)
+	{
+		v.alpha[i]*=c;
+		v.I[i]*=c;
+	}
+}
 
 
 

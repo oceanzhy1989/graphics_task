@@ -285,55 +285,55 @@ Matrix4 Matrix4::operator *(const Matrix4 &x)
 	return tmp;
 }
 
-Vector4 operator +(const Vector4 &x, const Vector4 &y)
-{
-	return Vector4(x.a[0]+y.a[0],x.a[1]+y.a[1],x.a[2]+y.a[2]);
-}
-Vector4 operator -(const Vector4 &x, const Vector4 &y)
-{
-	return Vector4(x.a[0]-y.a[0],x.a[1]-y.a[1],x.a[2]-y.a[2]);
-}
-Vector4 operator -(const Vector4 &x)
-{
-	return Vector4(-x.a[0],-x.a[1],-x.a[2]);
-}
-void operator +=(Vector4 &x, const Vector4 &y)
-{
-	x.a[0]+=y.a[0];
-	x.a[1]+=y.a[1];
-	x.a[2]+=y.a[2];
-}
+//Vector4 operator +(const Vector4 &x, const Vector4 &y)
+//{
+//	return Vector4(x.a[0]+y.a[0],x.a[1]+y.a[1],x.a[2]+y.a[2]);
+//}
+//Vector4 operator -(const Vector4 &x, const Vector4 &y)
+//{
+//	return Vector4(x.a[0]-y.a[0],x.a[1]-y.a[1],x.a[2]-y.a[2]);
+//}
+//Vector4 operator -(const Vector4 &x)
+//{
+//	return Vector4(-x.a[0],-x.a[1],-x.a[2]);
+//}
+//void operator +=(Vector4 &x, const Vector4 &y)
+//{
+//	x.a[0]+=y.a[0];
+//	x.a[1]+=y.a[1];
+//	x.a[2]+=y.a[2];
+//}
+//
+//void operator *=(Vector4 &x, double c)
+//{
+//	x.a[0]*=c;
+//	x.a[1]*=c;
+//	x.a[2]*=c;
+//}
+//
+//void operator -=(Vector4 &x, const Vector4 &y)
+//{
+//	x.a[0]-=y.a[0];
+//	x.a[1]-=y.a[1];
+//	x.a[2]-=y.a[2];
+//}
+//
+//Vector4 operator *(double c, const Vector4 &x)
+//{
+//	return Vector4(c*x.a[0],c*x.a[1],c*x.a[2]);
+//}
 
-void operator *=(Vector4 &x, double c)
-{
-	x.a[0]*=c;
-	x.a[1]*=c;
-	x.a[2]*=c;
-}
-
-void operator -=(Vector4 &x, const Vector4 &y)
-{
-	x.a[0]-=y.a[0];
-	x.a[1]-=y.a[1];
-	x.a[2]-=y.a[2];
-}
-
-Vector4 operator *(double c, const Vector4 &x)
-{
-	return Vector4(c*x.a[0],c*x.a[1],c*x.a[2]);
-}
-
-double dot(const Vector4 &x, const Vector4 &y)
-{
-	return x.a[0]*y.a[0]+x.a[1]*y.a[1]+x.a[2]*y.a[2];
-}
-
-Vector4 cross(const Vector4 &x, const Vector4 &y)
-{
-	return Vector4( x.a[1]*y.a[2]-x.a[2]*y.a[1],
-					x.a[2]*y.a[0]-x.a[0]*y.a[2],
-					x.a[0]*y.a[1]-x.a[1]*y.a[0]);
-}
+//double dot(const Vector4 &x, const Vector4 &y)
+//{
+//	return x.a[0]*y.a[0]+x.a[1]*y.a[1]+x.a[2]*y.a[2];
+//}
+//
+//Vector4 cross(const Vector4 &x, const Vector4 &y)
+//{
+//	return Vector4( x.a[1]*y.a[2]-x.a[2]*y.a[1],
+//					x.a[2]*y.a[0]-x.a[0]*y.a[2],
+//					x.a[0]*y.a[1]-x.a[1]*y.a[0]);
+//}
 
 double norm(const Vector4 &x)
 {

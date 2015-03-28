@@ -34,6 +34,14 @@ public:
 	void goForward(double z);
 
 	Vector4 getFacingDirection();
+	inline double getZ0()
+	{
+		return z0;
+	}
+	inline double getFocalLength()
+	{
+		return focalLength;
+	}
 
 
 	Matrix4 *getModelViewMatrix();
@@ -49,6 +57,8 @@ private:
 	double focalLength;
 	double screenWidth;
 	double screenHeight;
+
+	double z0;
 
 	double scale;
 };

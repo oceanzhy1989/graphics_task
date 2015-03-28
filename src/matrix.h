@@ -15,7 +15,7 @@ typedef struct Vector
 {
 	double a[4];
 
-	Vector(double x=0,double y=0,double z=0,double c=1)
+	inline Vector(double x=0,double y=0,double z=0,double c=1)
 	{
 		a[0]=x;a[1]=y;a[2]=z;
 		a[3]=c;
@@ -107,15 +107,58 @@ private:
 const Matrix4 IdentityMatrix(IDENTITY);
 
 
-Vector4 operator +(const Vector4 &x, const Vector4 &y);
-Vector4 operator -(const Vector4 &x, const Vector4 &y);
-Vector4 operator -(const Vector4 &x);
-Vector4 operator *(double c, const Vector4 &x);
-void operator +=(Vector4 &x, const Vector4 &y);
-void operator *=(Vector4 &x, double c);
+inline Vector4 operator +(const Vector4 &x, const Vector4 &y)
+{
+	return Vector4(x.a[0]+y.a[0],x.a[1]+y.a[1],x.a[2]+y.a[2]);
+}
 
-double dot(const Vector4 &x, const Vector4 &y);
-Vector4 cross(const Vector4 &x, const Vector4 &y);
+inline Vector4 operator -(const Vector4 &x, const Vector4 &y)
+{
+	return Vector4(x.a[0]-y.a[0],x.a[1]-y.a[1],x.a[2]-y.a[2]);
+}
+
+inline Vector4 operator -(const Vector4 &x)
+{
+	return Vector4(-x.a[0],-x.a[1],-x.a[2]);
+}
+
+inline Vector4 operator *(double c, const Vector4 &x)
+{
+	return Vector4(c*x.a[0],c*x.a[1],c*x.a[2]);
+}
+
+inline void operator +=(Vector4 &x, const Vector4 &y)
+{
+	x.a[0]+=y.a[0];
+	x.a[1]+=y.a[1];
+	x.a[2]+=y.a[2];
+}
+
+inline void operator -=(Vector4 &x, const Vector4 &y)
+{
+	x.a[0]-=y.a[0];
+	x.a[1]-=y.a[1];
+	x.a[2]-=y.a[2];
+}
+
+inline void operator *=(Vector4 &x, double c)
+{
+	x.a[0]*=c;
+	x.a[1]*=c;
+	x.a[2]*=c;
+}
+
+inline double dot(const Vector4 &x, const Vector4 &y)
+{
+	return x.a[0]*y.a[0]+x.a[1]*y.a[1]+x.a[2]*y.a[2];
+}
+
+inline Vector4 cross(const Vector4 &x, const Vector4 &y)
+{
+	return Vector4( x.a[1]*y.a[2]-x.a[2]*y.a[1],
+					x.a[2]*y.a[0]-x.a[0]*y.a[2],
+					x.a[0]*y.a[1]-x.a[1]*y.a[0]);
+}
 
 double norm(const Vector4 &x);
 Vector4 unitof(const Vector4 &x);
