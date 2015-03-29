@@ -66,6 +66,7 @@ private:
 
 	int width,height;
 	int halfwidth,halfheight;
+	double cut_bound[6];
 
 	list<IllumWithDepth> *bufferMap;
 	IllumWithDepth *bufferMap_single;

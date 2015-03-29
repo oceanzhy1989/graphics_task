@@ -18,6 +18,10 @@ myRenderer::myRenderer(int winWidth, int winHeight, HDC hDC, int xoffset, int yo
 	height=winHeight;
 	halfwidth=width/2;
 	halfheight=height/2;
+	cut_bound[0]=-halfwidth;cut_bound[3]=halfwidth;
+	cut_bound[1]=-halfheight;cut_bound[4]=halfheight;
+	cut_bound[2]=halfwidth>>1;cut_bound[5]=width<<2;
+
 	m_camera=new Camera(0,winWidth,winHeight,max(winWidth,winHeight));
 	m_ModelViewMatrix=m_camera->getModelViewMatrix();
 	m_ProjectionMatrix=m_camera->getProjectionMatrix();
@@ -33,8 +37,8 @@ myRenderer::myRenderer(int winWidth, int winHeight, HDC hDC, int xoffset, int yo
 	bufferMap_single_backup=NULL;
 
 	Vertex tmp;
-	modelVertice.push_back(tmp);
-	modelVertice.push_back(tmp);
+	for(int i=0;i<4;i++)
+		modelVertice.push_back(tmp);
 
 
 }
@@ -126,7 +130,61 @@ int myRenderer::cut(const Triangle &t, double z_front, double z_back)
 		return 1;
 	else
 	{
-		return 2;
+		for(int i=0;i<3;i++)
+		{
+			memcpy(v[i]->I,modelVertice[t.vert[i]].I,3*sizeof(double));
+			v[i]->tex_coord=modelVertice[t.vert[i]].tex_coord;
+			v[i]->tex_id=modelVertice[t.vert[i]].tex_id;
+			v[i]->triangle_count=modelVertice[t.vert[i]].triangle_count;
+		}
+		double z0=getCamera()->getZ0();
+		Vertex *vresult=&ProjectionVertice[0];
+		int resnum=0;
+		for(int i=0;i<3;i++)
+		{
+			Vertex *vstart=v[i];
+			Vertex *vend=v[(i+1)%3];
+
+			double t_near,t_far;
+
+			if(rcode[i]==0)
+				vresult[resnum++]=*v[i];
+
+			if(lineinsblock(vstart->pos,vend->pos,cut_bound,t_near,t_far))
+			{
+				if(t_near>0)
+				{
+					(vresult[resnum])=(1-t_near)/(vstart->pos.a[2]-z0)*(*vstart)+t_near/(vend->pos.a[2]-z0)*(*vend);
+					(vresult[resnum])*=z0/(vresult[resnum].pos.a[2]-1);
+					resnum++;
+				}
+				if(t_far<1)
+				{
+					(vresult[resnum])=(1-t_far)/(vstart->pos.a[2]-z0)*(*vstart)+t_far/(vend->pos.a[2]-z0)*(*vend);
+					(vresult[resnum])*=z0/(vresult[resnum].pos.a[2]-1);
+					resnum++;
+				}
+			}
+		}
+
+		if(resnum>0)
+		{
+			tmpTriangles[0].n=t.n;
+			tmpTriangles[0].vert[0]=0;
+			tmpTriangles[0].vert[1]=1;
+			tmpTriangles[0].vert[2]=2;
+		}
+		if(resnum>2)
+		{
+			tmpTriangles[1].n=t.n;
+			tmpTriangles[1].vert[0]=0;
+			tmpTriangles[1].vert[1]=2;
+			tmpTriangles[1].vert[2]=3;
+		}
+
+		memcpy(&modelVertice[0],vresult,4*sizeof(Vertex));
+
+		return 2+resnum/3;
 	}
 }
 
@@ -177,15 +235,28 @@ int myRenderer::Render()
 		}
 	}
 
-	int z_back=width<<2;
-	int z_front=halfwidth>>1;
+	int z_back=cut_bound[5];
+	int z_front=cut_bound[2];
 	if(options & FILL)
 	{
 		for(int i=0;i<tri_count;i++)
 		{
-			if(cut(modelTriangles[i],z_front,z_back)==0)
+			int caseid=cut(modelTriangles[i],z_front,z_back);
+			switch(caseid)
+			{
+			case 0:
 				continue;
-			this->Rasterization(modelTriangles[i]);
+			case 1:
+				this->Rasterization(modelTriangles[i]);
+				break;
+			default:
+				for(int j=0;j<caseid-1;j++)
+				{
+					this->Rasterization(tmpTriangles[j]);
+				}
+				break;
+			}
+
 		}
 	}
 
