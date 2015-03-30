@@ -39,6 +39,8 @@ public:
 	void calIllumination();
 	bool loadNewTexture(const char *tex_file_name);
 	int cut(const Triangle &t, double z_front, double z_back);//0(Íâ£©1£¨ÄÚ£©2£¨½»£©
+	int cut(const Triangle &t);
+	int subcut(int bound_id, int rcode[]);
 	int Render();
 
 	Camera *getCamera();
@@ -66,6 +68,7 @@ private:
 
 	int width,height;
 	int halfwidth,halfheight;
+	double cut_bound[6];
 
 	list<IllumWithDepth> *bufferMap;
 	IllumWithDepth *bufferMap_single;
@@ -77,7 +80,10 @@ private:
 
 	vector<Vertex> modelVertice;
 	vector<Triangle> modelTriangles;
-	Triangle tmpTriangles[2];
+
+	int tmpVertNum;
+	int tmpTriNum;
+	Triangle tmpTriangles[20];
 
 
 	vector<Vertex> modelViewVertice;

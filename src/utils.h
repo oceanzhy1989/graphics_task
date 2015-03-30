@@ -116,6 +116,8 @@ inline void operator *= ( IllumWithDepth &v, double c)
 	}
 }
 
+void operator *= (Vertex &v,double c);
+
 
 
 #endif
