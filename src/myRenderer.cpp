@@ -340,22 +340,45 @@ int myRenderer::Render()
 	
 
 	int tri_count=modelTriangles.size();
+	double z0=getCamera()->getZ0();
+	cut_bound[2]=z0+(halfwidth>>1);
+	cut_bound[5]=z0+(width<<2);
+	Triangle *triangle;
+
 	if(options & DRAW_BOARDER)
 	{
 		for(int i=0;i<tri_count;i++)
 		{
-			Triangle *triangle=&(modelTriangles[i]);			
+			int caseid=cut(modelTriangles[i]);
+			switch(caseid)
+			{
+			case 0:
+				continue;
+			case 1:
+				triangle=&(modelTriangles[i]);	
 			
-			storeLine(&ProjectionVertice[triangle->vert[0]], &ProjectionVertice[triangle->vert[1]]);
-			storeLine(&ProjectionVertice[triangle->vert[1]], &ProjectionVertice[triangle->vert[2]]);
-			storeLine(&ProjectionVertice[triangle->vert[2]], &ProjectionVertice[triangle->vert[0]]);
+				storeLine(&ProjectionVertice[triangle->vert[0]], &ProjectionVertice[triangle->vert[1]]);
+				storeLine(&ProjectionVertice[triangle->vert[1]], &ProjectionVertice[triangle->vert[2]]);
+				storeLine(&ProjectionVertice[triangle->vert[2]], &ProjectionVertice[triangle->vert[0]]);
+				break;
+			default:
+				for(int j=0;j<caseid-10;j++)
+				{
+					if(tmpTriangles[j].vert[0]<0)
+						continue;
+					triangle=&(tmpTriangles[j]);	
+					storeLine(&ProjectionVertice[triangle->vert[0]], &ProjectionVertice[triangle->vert[1]]);
+					storeLine(&ProjectionVertice[triangle->vert[1]], &ProjectionVertice[triangle->vert[2]]);
+					storeLine(&ProjectionVertice[triangle->vert[2]], &ProjectionVertice[triangle->vert[0]]);
+				}
+				break;
+			}
+				
 			
 		}
 	}
 
-	double z0=getCamera()->getZ0();
-	cut_bound[2]=z0+(halfwidth>>1);
-	cut_bound[5]=z0+(width<<2);
+	
 	if(options & FILL)
 	{
 		for(int i=0;i<tri_count;i++)
@@ -381,7 +404,7 @@ int myRenderer::Render()
 		}
 	}
 
-	if(options & DEPTH_TEST)
+	if((options & DEPTH_TEST) && !(options & DRAW_BOARDER))
 	{
 		if(options & ENABLE_A_BUFFER)
 		{
@@ -714,6 +737,8 @@ void myRenderer::storeLine(const Vertex *v1, const Vertex *v2)
 	const Vertex *sz_v1;
 	const Vertex *sz_v2;
 
+	Vertex *startv=&ProjectionVertice[0];
+	
 	if(fabs(m)<1)
 	{
 		if(dx<0)
@@ -737,6 +762,9 @@ void myRenderer::storeLine(const Vertex *v1, const Vertex *v2)
 			sz_v2=v2;
 		}
 
+		int id1=sz_v1-startv;
+		int id2=sz_v2-startv;
+
 		double y=y1;
 		
 		dt=1/fabs(dx);
@@ -748,7 +776,7 @@ void myRenderer::storeLine(const Vertex *v1, const Vertex *v2)
 			double color[3];
 			for(int k=0;k<3;k++)
 			{
-				color[k]=(1.0001-t)*(sz_v1->color[k])+t*(sz_v2->color[k]);
+				color[k]=(1.0001-t)*(modelVertice[id1].I[k])+t*(modelVertice[id2].I[k]);
 			}
 
 			RGBQUAD RGB4;
@@ -786,6 +814,8 @@ void myRenderer::storeLine(const Vertex *v1, const Vertex *v2)
 			sz_v2=v2;
 		}
 
+		int id1=sz_v1-startv;
+		int id2=sz_v2-startv;
 		double x=x1;
 		
 		dt=1/fabs(dy);
@@ -797,7 +827,7 @@ void myRenderer::storeLine(const Vertex *v1, const Vertex *v2)
 			double color[3];
 			for(int k=0;k<3;k++)
 			{
-				color[k]=(1.0001-t)*(sz_v1->color[k])+t*(sz_v2->color[k]);
+				color[k]=(1.0001-t)*(modelVertice[id1].I[k])+t*(modelVertice[id2].I[k]);
 			}
 
 			RGBQUAD RGB4;
