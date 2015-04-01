@@ -79,8 +79,8 @@ void Controller::init(int winWidth, int winHeight, HDC hdc)
 				ren->AddVertex(texv3);
 				ren->AddVertex(texv4);
 
-				ren->AddTriangle(4+4*t_id,6+4*t_id,5+4*t_id);
-				ren->AddTriangle(4+4*t_id,7+4*t_id,6+4*t_id);
+				ren->AddTriangle(24+4*t_id,26+4*t_id,25+4*t_id);
+				ren->AddTriangle(24+4*t_id,27+4*t_id,26+4*t_id);
 				t_id++;
 			}
 		}

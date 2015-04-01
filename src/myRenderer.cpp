@@ -5,12 +5,7 @@
 #include <fstream>
 using namespace std;
 
-const unsigned char bit0=1;
-const unsigned char bit1=1<<1;
-const unsigned char bit2=1<<2;
-const unsigned char bit3=1<<3;
-const unsigned char bit4=1<<4;
-const unsigned char bit5=1<<5;
+const int bit[6]={1,1<<1,1<<2,1<<3,1<<4,1<<5};
 
 myRenderer::myRenderer(int winWidth, int winHeight, HDC hDC, int xoffset, int yoffset) : options(DRAW_BOARDER),m_hdc(hDC),xoff(xoffset),yoff(yoffset)
 {
@@ -18,11 +13,14 @@ myRenderer::myRenderer(int winWidth, int winHeight, HDC hDC, int xoffset, int yo
 	height=winHeight;
 	halfwidth=width/2;
 	halfheight=height/2;
-	cut_bound[0]=-halfwidth;cut_bound[3]=halfwidth;
-	cut_bound[1]=-halfheight;cut_bound[4]=halfheight;
-	cut_bound[2]=halfwidth>>1;cut_bound[5]=width<<2;
+	
 
 	m_camera=new Camera(0,winWidth,winHeight,max(winWidth,winHeight));
+	double z0=m_camera->getZ0();
+	cut_bound[0]=-halfwidth;cut_bound[3]=halfwidth;
+	cut_bound[1]=-halfheight;cut_bound[4]=halfheight;
+	cut_bound[2]=z0+(halfwidth>>1);cut_bound[5]=z0+(width<<2);
+
 	m_ModelViewMatrix=m_camera->getModelViewMatrix();
 	m_ProjectionMatrix=m_camera->getProjectionMatrix();
 
@@ -37,7 +35,7 @@ myRenderer::myRenderer(int winWidth, int winHeight, HDC hDC, int xoffset, int yo
 	bufferMap_single_backup=NULL;
 
 	Vertex tmp;
-	for(int i=0;i<4;i++)
+	for(int i=0;i<24;i++)
 		modelVertice.push_back(tmp);
 
 
@@ -112,6 +110,125 @@ void myRenderer::SetOptions(int Option)
 	}
 }
 
+int myRenderer::subcut(int bound_id, int rcode[])
+{
+	int newtmptrinum=tmpTriNum;
+	for(int tri_id=0;tri_id<newtmptrinum;tri_id++)
+	{
+		Triangle &t=tmpTriangles[tri_id]; 
+		if(t.vert[0]<0)
+			continue;
+
+		Vertex *v[3]={&ProjectionVertice[t.vert[0]],&ProjectionVertice[t.vert[1]],&ProjectionVertice[t.vert[2]]};
+		for(int i=0;i<3;i++)
+		{
+			if(t.vert[i]<20)
+				continue;
+
+			memcpy(v[i]->I,modelVertice[t.vert[i]].I,3*sizeof(double));
+			v[i]->tex_coord=modelVertice[t.vert[i]].tex_coord;
+			v[i]->tex_id=modelVertice[t.vert[i]].tex_id;
+			v[i]->triangle_count=modelVertice[t.vert[i]].triangle_count;
+		}
+
+		double z0=getCamera()->getZ0();
+		int sign=bound_id>2?-1:1;
+		int subrcode[3];//={rcode[0]&bit[bound_id], rcode[1]&bit[bound_id], rcode[2]&bit[bound_id] };
+		for(int i=0;i<3;i++)
+		{
+			subrcode[i]=sgn(sign*(cut_bound[bound_id]-ProjectionVertice[t.vert[i]].pos.a[bound_id%3]));
+		}
+
+		int test1=subrcode[0] | subrcode[1] | subrcode[2];//全在内
+		int test2=subrcode[0] & subrcode[1] & subrcode[2];//全在外
+		if(test2 != 0)
+		{
+			t.vert[0]=-1;
+			continue;
+		}
+		if(test1 ==0)
+			continue;
+
+		
+		Vertex *vresult[4];		
+		int resnum=0;
+
+		for(int i=0;i<3;i++)
+		{
+			Vertex *vstart=v[i];
+			Vertex *vend=v[(i+1)%3];
+
+			double t_near=(cut_bound[bound_id]-vstart->pos.a[bound_id%3])/(vend->pos.a[bound_id%3]-vstart->pos.a[bound_id%3]);
+
+			if(subrcode[i]==0)
+				vresult[resnum++]=v[i];
+
+			if(t_near>0 && t_near<1)
+			{
+				vresult[resnum]=&ProjectionVertice[tmpVertNum];
+				*(vresult[resnum])=(1-t_near)/(vstart->pos.a[2]-z0)*(*vstart)+t_near/(vend->pos.a[2]-z0)*(*vend);
+				*(vresult[resnum])*=z0/(vresult[resnum]->pos.a[2]-1);
+
+				resnum++;
+				tmpVertNum++;
+			}
+		}
+
+		Vertex *start_idv=&ProjectionVertice[0];
+		if(resnum>0)
+		{
+			t.n=t.n;
+			t.vert[0]=vresult[0]-start_idv;
+			t.vert[1]=vresult[1]-start_idv;
+			t.vert[2]=vresult[2]-start_idv;
+
+		}
+		if(resnum>3)
+		{
+			tmpTriNum++;
+
+			tmpTriangles[tmpTriNum-1].n=t.n;
+			tmpTriangles[tmpTriNum-1].vert[0]=vresult[0]-start_idv;
+			tmpTriangles[tmpTriNum-1].vert[1]=vresult[2]-start_idv;
+			tmpTriangles[tmpTriNum-1].vert[2]=vresult[3]-start_idv;
+		}
+		
+
+	}
+
+	return 0;
+}
+
+int myRenderer::cut(const Triangle &t)
+{
+	Vertex *v[3]={&ProjectionVertice[t.vert[0]],&ProjectionVertice[t.vert[1]],&ProjectionVertice[t.vert[2]]};
+	int rcode[3]={sgn(cut_bound[0]-v[0]->pos.a[0])*bit[0] | sgn(cut_bound[1]-v[0]->pos.a[1])*bit[1] | sgn(cut_bound[2]-v[0]->pos.a[2])*bit[2] | sgn(-(cut_bound[3]-v[0]->pos.a[0]))*bit[3] | sgn(-(cut_bound[4]-v[0]->pos.a[1]))*bit[4] | sgn(-(cut_bound[5]-v[0]->pos.a[2]))*bit[5],
+				  sgn(cut_bound[0]-v[1]->pos.a[0])*bit[0] | sgn(cut_bound[1]-v[1]->pos.a[1])*bit[1] | sgn(cut_bound[2]-v[1]->pos.a[2])*bit[2] | sgn(-(cut_bound[3]-v[1]->pos.a[0]))*bit[3] | sgn(-(cut_bound[4]-v[1]->pos.a[1]))*bit[4] | sgn(-(cut_bound[5]-v[1]->pos.a[2]))*bit[5],
+				  sgn(cut_bound[0]-v[2]->pos.a[0])*bit[0] | sgn(cut_bound[1]-v[2]->pos.a[1])*bit[1] | sgn(cut_bound[2]-v[2]->pos.a[2])*bit[2] | sgn(-(cut_bound[3]-v[2]->pos.a[0]))*bit[3] | sgn(-(cut_bound[4]-v[2]->pos.a[1]))*bit[4] | sgn(-(cut_bound[5]-v[2]->pos.a[2]))*bit[5]
+	};
+
+	if((rcode[0] & rcode[1] & rcode[2]) != 0)
+	{	
+		return 0;
+	}
+	if((rcode[0] | rcode[1] | rcode[2]) == 0)
+	{	
+		return 1;
+	}
+
+	//return 0;
+	tmpVertNum=0;
+	tmpTriNum=1;
+	tmpTriangles[0]=t;
+	for(int i=0;i<6;i++)
+		subcut(i,rcode);
+
+	if(tmpVertNum>0)
+		memcpy(&modelVertice[0],&ProjectionVertice[0],tmpVertNum*sizeof(Vertex));
+	return 10+tmpTriNum;
+
+
+}
 int myRenderer::cut(const Triangle &t, double z_front, double z_back)
 {
 	Vertex *v[3]={&ProjectionVertice[t.vert[0]],&ProjectionVertice[t.vert[1]],&ProjectionVertice[t.vert[2]]};
@@ -119,9 +236,9 @@ int myRenderer::cut(const Triangle &t, double z_front, double z_back)
 	double z0=getCamera()->getZ0();
 
 	unsigned char rcode[3]={
-		(sgn(-halfwidth-v[0]->pos.a[0])*bit0) | (sgn(v[0]->pos.a[0]-halfwidth)*bit1) | (sgn(-halfheight-v[0]->pos.a[1])*bit2) | (sgn(v[0]->pos.a[1]-halfheight)*bit3) | (sgn(z_front+z0-v[0]->pos.a[2])*bit4) | (sgn(v[0]->pos.a[2]-z_back-z0)*bit5),
-		(sgn(-halfwidth-v[1]->pos.a[0])*bit0) | (sgn(v[1]->pos.a[0]-halfwidth)*bit1) | (sgn(-halfheight-v[1]->pos.a[1])*bit2) | (sgn(v[1]->pos.a[1]-halfheight)*bit3) | (sgn(z_front+z0-v[1]->pos.a[2])*bit4) | (sgn(v[1]->pos.a[2]-z_back-z0)*bit5),
-		(sgn(-halfwidth-v[2]->pos.a[0])*bit0) | (sgn(v[2]->pos.a[0]-halfwidth)*bit1) | (sgn(-halfheight-v[2]->pos.a[1])*bit2) | (sgn(v[2]->pos.a[1]-halfheight)*bit3) | (sgn(z_front+z0-v[2]->pos.a[2])*bit4) | (sgn(v[2]->pos.a[2]-z_back-z0)*bit5)
+		(sgn(-halfwidth-v[0]->pos.a[0])*bit[0]) | (sgn(v[0]->pos.a[0]-halfwidth)*bit[1]) | (sgn(-halfheight-v[0]->pos.a[1])*bit[2]) | (sgn(v[0]->pos.a[1]-halfheight)*bit[3]) | (sgn(z_front+z0-v[0]->pos.a[2])*bit[4]) | (sgn(v[0]->pos.a[2]-z_back-z0)*bit[5]),
+		(sgn(-halfwidth-v[1]->pos.a[0])*bit[0]) | (sgn(v[1]->pos.a[0]-halfwidth)*bit[1]) | (sgn(-halfheight-v[1]->pos.a[1])*bit[2]) | (sgn(v[1]->pos.a[1]-halfheight)*bit[3]) | (sgn(z_front+z0-v[1]->pos.a[2])*bit[4]) | (sgn(v[1]->pos.a[2]-z_back-z0)*bit[5]),
+		(sgn(-halfwidth-v[2]->pos.a[0])*bit[0]) | (sgn(v[2]->pos.a[0]-halfwidth)*bit[1]) | (sgn(-halfheight-v[2]->pos.a[1])*bit[2]) | (sgn(v[2]->pos.a[1]-halfheight)*bit[3]) | (sgn(z_front+z0-v[2]->pos.a[2])*bit[4]) | (sgn(v[2]->pos.a[2]-z_back-z0)*bit[5])
 	};
 
 	if((rcode[0] & rcode[1] & rcode[2]) != 0)
@@ -137,6 +254,7 @@ int myRenderer::cut(const Triangle &t, double z_front, double z_back)
 			v[i]->tex_id=modelVertice[t.vert[i]].tex_id;
 			v[i]->triangle_count=modelVertice[t.vert[i]].triangle_count;
 		}
+		
 		double z0=getCamera()->getZ0();
 		Vertex *vresult=&ProjectionVertice[0];
 		int resnum=0;
@@ -222,26 +340,50 @@ int myRenderer::Render()
 	
 
 	int tri_count=modelTriangles.size();
+	double z0=getCamera()->getZ0();
+	cut_bound[2]=z0+(halfwidth>>1);
+	cut_bound[5]=z0+(width<<2);
+	Triangle *triangle;
+
 	if(options & DRAW_BOARDER)
 	{
 		for(int i=0;i<tri_count;i++)
 		{
-			Triangle *triangle=&(modelTriangles[i]);			
+			int caseid=cut(modelTriangles[i]);
+			switch(caseid)
+			{
+			case 0:
+				continue;
+			case 1:
+				triangle=&(modelTriangles[i]);	
 			
-			storeLine(&ProjectionVertice[triangle->vert[0]], &ProjectionVertice[triangle->vert[1]]);
-			storeLine(&ProjectionVertice[triangle->vert[1]], &ProjectionVertice[triangle->vert[2]]);
-			storeLine(&ProjectionVertice[triangle->vert[2]], &ProjectionVertice[triangle->vert[0]]);
+				storeLine(&ProjectionVertice[triangle->vert[0]], &ProjectionVertice[triangle->vert[1]]);
+				storeLine(&ProjectionVertice[triangle->vert[1]], &ProjectionVertice[triangle->vert[2]]);
+				storeLine(&ProjectionVertice[triangle->vert[2]], &ProjectionVertice[triangle->vert[0]]);
+				break;
+			default:
+				for(int j=0;j<caseid-10;j++)
+				{
+					if(tmpTriangles[j].vert[0]<0)
+						continue;
+					triangle=&(tmpTriangles[j]);	
+					storeLine(&ProjectionVertice[triangle->vert[0]], &ProjectionVertice[triangle->vert[1]]);
+					storeLine(&ProjectionVertice[triangle->vert[1]], &ProjectionVertice[triangle->vert[2]]);
+					storeLine(&ProjectionVertice[triangle->vert[2]], &ProjectionVertice[triangle->vert[0]]);
+				}
+				break;
+			}
+				
 			
 		}
 	}
 
-	int z_back=cut_bound[5];
-	int z_front=cut_bound[2];
+	
 	if(options & FILL)
 	{
 		for(int i=0;i<tri_count;i++)
 		{
-			int caseid=cut(modelTriangles[i],z_front,z_back);
+			int caseid=cut(modelTriangles[i]);
 			switch(caseid)
 			{
 			case 0:
@@ -250,8 +392,10 @@ int myRenderer::Render()
 				this->Rasterization(modelTriangles[i]);
 				break;
 			default:
-				for(int j=0;j<caseid-1;j++)
+				for(int j=0;j<caseid-10;j++)
 				{
+					if(tmpTriangles[j].vert[0]<0)
+						continue;
 					this->Rasterization(tmpTriangles[j]);
 				}
 				break;
@@ -260,7 +404,7 @@ int myRenderer::Render()
 		}
 	}
 
-	if(options & DEPTH_TEST)
+	if((options & DEPTH_TEST) && !(options & DRAW_BOARDER))
 	{
 		if(options & ENABLE_A_BUFFER)
 		{
@@ -593,6 +737,8 @@ void myRenderer::storeLine(const Vertex *v1, const Vertex *v2)
 	const Vertex *sz_v1;
 	const Vertex *sz_v2;
 
+	Vertex *startv=&ProjectionVertice[0];
+	
 	if(fabs(m)<1)
 	{
 		if(dx<0)
@@ -616,6 +762,9 @@ void myRenderer::storeLine(const Vertex *v1, const Vertex *v2)
 			sz_v2=v2;
 		}
 
+		int id1=sz_v1-startv;
+		int id2=sz_v2-startv;
+
 		double y=y1;
 		
 		dt=1/fabs(dx);
@@ -627,7 +776,7 @@ void myRenderer::storeLine(const Vertex *v1, const Vertex *v2)
 			double color[3];
 			for(int k=0;k<3;k++)
 			{
-				color[k]=(1.0001-t)*(sz_v1->color[k])+t*(sz_v2->color[k]);
+				color[k]=(1.0001-t)*(modelVertice[id1].I[k])+t*(modelVertice[id2].I[k]);
 			}
 
 			RGBQUAD RGB4;
@@ -665,6 +814,8 @@ void myRenderer::storeLine(const Vertex *v1, const Vertex *v2)
 			sz_v2=v2;
 		}
 
+		int id1=sz_v1-startv;
+		int id2=sz_v2-startv;
 		double x=x1;
 		
 		dt=1/fabs(dy);
@@ -676,7 +827,7 @@ void myRenderer::storeLine(const Vertex *v1, const Vertex *v2)
 			double color[3];
 			for(int k=0;k<3;k++)
 			{
-				color[k]=(1.0001-t)*(sz_v1->color[k])+t*(sz_v2->color[k]);
+				color[k]=(1.0001-t)*(modelVertice[id1].I[k])+t*(modelVertice[id2].I[k]);
 			}
 
 			RGBQUAD RGB4;
@@ -691,6 +842,45 @@ void myRenderer::storeLine(const Vertex *v1, const Vertex *v2)
 	}
 
 	//graphicsAPI::getInstance()->draw(hDC,left,top);
+}
+
+void myRenderer::MakeInterpolateTriInfo(Vertex *vert[3])
+{
+	Vector v[3]={vert[0]->pos,vert[1]->pos,vert[2]->pos};
+	for(int i=0;i<3;i++)
+	{
+		v[i].a[2]=0;
+	}
+	currentInterpolateInfo.v0=v[0];
+	Vector edge[3]={v[2]-v[1],v[0]-v[2],v[1]-v[0]};
+	double edge_length[3]={norm(edge[0]),norm(edge[1]),norm(edge[2])};
+	Vector normalv=cross(edge[0],edge[1]);
+	double area=norm(normalv);
+	Vector vertical[3]={unitof(cross(normalv,edge[0])),unitof(cross(normalv,edge[1])),unitof(cross(normalv,edge[2]))};
+	Vector vx(1,0,0);
+	Vector vy(0,1,0);
+	for(int i=0;i<3;i++)
+	{
+		currentInterpolateInfo.x_gain[i]=dot(vx,vertical[i])*edge_length[i]/area;
+		currentInterpolateInfo.y_gain[i]=dot(vy,vertical[i])*edge_length[i]/area;
+	}
+
+
+}
+bool myRenderer::interpolate(double x, double y, double c[3])
+{
+	double dx=x-currentInterpolateInfo.v0.a[0];
+	double dy=y-currentInterpolateInfo.v0.a[1];
+
+	c[0]=1+dx*currentInterpolateInfo.x_gain[0]+dy*currentInterpolateInfo.y_gain[0];
+	if(c[0]<0) return false;
+	c[1]=dx*currentInterpolateInfo.x_gain[1]+dy*currentInterpolateInfo.y_gain[1];
+	if(c[1]<0) return false;
+	c[2]=dx*currentInterpolateInfo.x_gain[2]+dy*currentInterpolateInfo.y_gain[2];
+	if(c[2]<0) return false;
+
+	return true;
+	
 }
 
 void myRenderer::calNormalVector(Triangle *t)
@@ -773,36 +963,38 @@ bool myRenderer::loadNewTexture(const char *tex_file_name)
 void myRenderer::subRasterization(Vertex **v,int x, int y, int ModelVertexIndex[3])
 {
 	RGBQUAD RGB;
-	Vector origin(x,y,0);
-	Vector p[3];
+	//Vector origin(x,y,0);
+	//Vector p[3];
 	double c[3];
 
-	for(int i=0;i<3;i++)
-	{
-		p[i]=v[i]->pos;
-		p[i].a[2]=0;
-		p[i]=p[i]-origin;
-	}
+	//for(int i=0;i<3;i++)
+	//{
+	//	p[i]=v[i]->pos;
+	//	p[i].a[2]=0;
+	//	p[i]=p[i]-origin;
+	//}
 
 
-	Vector normal[3];
-	for(int i=0;i<3;i++)
-	{
-		normal[i]=cross(p[(1+i)%3],p[(2+i)%3]);
-	}
-	for(int i=0;i<3;i++)
-	{
-		if(dot(normal[(1+i)%3],normal[(2+i)%3])<0)
-			return;
-		else
-			c[i]=norm(normal[i]);
-	}
+	//Vector normal[3];
+	//for(int i=0;i<3;i++)
+	//{
+	//	normal[i]=cross(p[(1+i)%3],p[(2+i)%3]);
+	//}
+	//for(int i=0;i<3;i++)
+	//{
+	//	if(dot(normal[(1+i)%3],normal[(2+i)%3])<0)
+	//		return;
+	//	else
+	//		c[i]=norm(normal[i]);
+	//}
 
-	double area=1/(c[0]+c[1]+c[2]);
-	for(int i=0;i<3;i++)
-	{
-		c[i]*=area;
-	}
+	//double area=1/(c[0]+c[1]+c[2]);
+	//for(int i=0;i<3;i++)
+	//{
+	//	c[i]*=area;
+	//}
+	if(!interpolate(x,y,c))
+		return;
 
 	if(options & DEPTH_TEST)
 	{
@@ -841,6 +1033,7 @@ void myRenderer::subRasterization(Vertex **v,int x, int y, int ModelVertexIndex[
 
 void myRenderer::Rasterization(const Triangle &t)
 {
+	
 	Vertex *v[3];
 	Vertex v0=ProjectionVertice[t.vert[0]];
 	Vertex v1=ProjectionVertice[t.vert[1]];
@@ -867,6 +1060,8 @@ void myRenderer::Rasterization(const Triangle &t)
 	v[3-label1-label]=&v2;
 	Index[3-label1-label]=t.vert[2];
 
+	MakeInterpolateTriInfo(v);
+
 
 	double y1=v[0]->pos.a[1];
 	double y2=y1;
@@ -884,14 +1079,6 @@ void myRenderer::Rasterization(const Triangle &t)
 	{
 		if(cutLine(v[0]->pos,v[1]->pos,x,y1) && cutLine(v[0]->pos,v[2]->pos,x,y2))
 		{
-			if(y1<-halfheight) 
-				y1=-halfheight;
-			if(y1>halfheight) 
-				y1=halfheight;
-			if(y2<-halfheight) 
-				y2=-halfheight;
-			if(y2>halfheight) 
-				y2=halfheight;
 			sign=(y2-y1)>0?1:-1;
 			for(int y=round(y1)-2*sign;y!=round(y2)+2*sign;y+=sign)
 			{
@@ -905,14 +1092,6 @@ void myRenderer::Rasterization(const Triangle &t)
 	{
 		if(cutLine(v[1]->pos,v[2]->pos,x,y1) && cutLine(v[0]->pos,v[2]->pos,x,y2))
 		{
-			if(y1<-halfheight) 
-				y1=-halfheight;
-			if(y1>halfheight) 
-				y1=halfheight;
-			if(y2<-halfheight) 
-				y2=-halfheight;
-			if(y2>halfheight) 
-				y2=halfheight;
 			sign=(y2-y1)>0?1:-1;
 			for(int y=round(y1)-2*sign;y!=round(y2)+2*sign;y+=sign)
 			{

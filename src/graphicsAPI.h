@@ -15,9 +15,9 @@ public:
 	inline bool storePixel(int x, int y, RGBQUAD color)
 	{
 		//x+=halfwidth;
-		y=height-y;
-		if(x<0 || x>=width || y<0 || y>=height ) 
-			return false;
+		y=height-1-y;
+		//if(x<0 || x>=width || y<0 || y>=height ) 
+		//	return false;
 
 		BYTE *p=pixels+4*(x+y*width);
 		*(p++) = color.rgbBlue;

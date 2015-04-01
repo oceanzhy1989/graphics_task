@@ -23,6 +23,13 @@ enum RenderOptions
 
 struct Pxyz{float x,y,z;};
 struct FACET{Pxyz n;Pxyz dot[3];};		//法向量，三节点
+struct InterpolateTriInfo
+{
+	Vector v0;
+	double x_gain[3];
+	double y_gain[3];
+
+};
 
 class myRenderer
 {
@@ -39,6 +46,8 @@ public:
 	void calIllumination();
 	bool loadNewTexture(const char *tex_file_name);
 	int cut(const Triangle &t, double z_front, double z_back);//0(外）1（内）2（交）
+	int cut(const Triangle &t);
+	int subcut(int bound_id, int rcode[]);
 	int Render();
 
 	Camera *getCamera();
@@ -60,6 +69,8 @@ private:
 	void Rasterization(const Triangle &t);
 	void subRasterization(Vertex **v,int x, int y, int ModelVertexIndex[3]);
 	void calNormalVector(Triangle *t);
+	void MakeInterpolateTriInfo(Vertex *vert[3]);
+	bool interpolate(double x, double y, double c[3]);
 	
 
 private:
@@ -78,11 +89,16 @@ private:
 
 	vector<Vertex> modelVertice;
 	vector<Triangle> modelTriangles;
-	Triangle tmpTriangles[2];
+
+	int tmpVertNum;
+	int tmpTriNum;
+	Triangle tmpTriangles[20];
 
 
 	vector<Vertex> modelViewVertice;
 	vector<Vertex> ProjectionVertice;
+
+	InterpolateTriInfo currentInterpolateInfo;
 
 	LightSource lSource;
 	double ambient[3];

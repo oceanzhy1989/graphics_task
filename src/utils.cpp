@@ -185,7 +185,7 @@ bool lineinsblock(const Vector &startv, const Vector &endv, double bound[], doub
 		tNear=tnear[0];
 		tFar=tfar[0];
 
-		if(tNear<0 && tFar>0)
+		if(tNear>1 || tNear<0 && tFar>1)
 			return false;
 		return true;
 	}
