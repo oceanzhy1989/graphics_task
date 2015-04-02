@@ -17,8 +17,8 @@ myRenderer::myRenderer(int winWidth, int winHeight, HDC hDC, int xoffset, int yo
 
 	m_camera=new Camera(0,winWidth,winHeight,max(winWidth,winHeight));
 	double z0=m_camera->getZ0();
-	cut_bound[0]=-halfwidth;cut_bound[3]=halfwidth;
-	cut_bound[1]=-halfheight;cut_bound[4]=halfheight;
+	cut_bound[0]=2-halfwidth;cut_bound[3]=halfwidth-2;
+	cut_bound[1]=3-halfheight;cut_bound[4]=halfheight-3;
 	cut_bound[2]=z0+(halfwidth>>1);cut_bound[5]=z0+(width<<2);
 
 	m_ModelViewMatrix=m_camera->getModelViewMatrix();
@@ -693,8 +693,8 @@ void myRenderer::mergeBuffer(int x, int y, const IllumWithDepth &v)
 	x+=halfwidth;
 	y+=halfheight;
 
-	if(x<0 || x>=width || y<0 || y>=height ) 
-		return;
+	//if(x<0 || x>=width || y<0 || y>=height ) 
+	//	return;
 
 	if(options & ENABLE_A_BUFFER)
 	{
@@ -962,37 +962,7 @@ bool myRenderer::loadNewTexture(const char *tex_file_name)
 
 void myRenderer::subRasterization(Vertex **v,int x, int y, int ModelVertexIndex[3])
 {
-	RGBQUAD RGB;
-	//Vector origin(x,y,0);
-	//Vector p[3];
 	double c[3];
-
-	//for(int i=0;i<3;i++)
-	//{
-	//	p[i]=v[i]->pos;
-	//	p[i].a[2]=0;
-	//	p[i]=p[i]-origin;
-	//}
-
-
-	//Vector normal[3];
-	//for(int i=0;i<3;i++)
-	//{
-	//	normal[i]=cross(p[(1+i)%3],p[(2+i)%3]);
-	//}
-	//for(int i=0;i<3;i++)
-	//{
-	//	if(dot(normal[(1+i)%3],normal[(2+i)%3])<0)
-	//		return;
-	//	else
-	//		c[i]=norm(normal[i]);
-	//}
-
-	//double area=1/(c[0]+c[1]+c[2]);
-	//for(int i=0;i<3;i++)
-	//{
-	//	c[i]*=area;
-	//}
 	if(!interpolate(x,y,c))
 		return;
 
@@ -1000,17 +970,25 @@ void myRenderer::subRasterization(Vertex **v,int x, int y, int ModelVertexIndex[
 	{
 		double z0=getCamera()->getZ0();
 		double coe[3]={1/(v[0]->pos.a[2]-z0),1/(v[1]->pos.a[2]-z0),1/(v[2]->pos.a[2]-z0)};
-		IllumWithDepth tmp=c[0]*IllumWithDepth(modelVertice[ModelVertexIndex[0]],v[0]->pos.a[2],coe[0])+
-						   c[1]*IllumWithDepth(modelVertice[ModelVertexIndex[1]],v[1]->pos.a[2],coe[1])+
-						   c[2]*IllumWithDepth(modelVertice[ModelVertexIndex[2]],v[2]->pos.a[2],coe[2]);
+	
+		IllumWithDepth tmp(modelVertice[ModelVertexIndex[0]],v[0]->pos.a[2],coe[0]);
+		tmp*=c[0];
+		IllumWithDepth tmp1(modelVertice[ModelVertexIndex[1]],v[1]->pos.a[2],coe[1]);
+		tmp1*=c[1];
+		IllumWithDepth tmp2(modelVertice[ModelVertexIndex[2]],v[2]->pos.a[2],coe[2]);
+		tmp2*=c[2];
+
+		tmp+=tmp1;
+		tmp+=tmp2;
 		tmp*=z0/(tmp.depth-1);
 		
 
 		if((options & TEXTURE_MAPPING) && tmp.tex_id>=0 && tmp.tex_id<textures.size() )
 		{
+			floatColor res=textures[tmp.tex_id].readPixel(tmp.tex_u,tmp.tex_v);
 			for(int k=0;k<3;k++)
 			{
-				tmp.I[k]*=textures[tmp.tex_id].readPixel(tmp.tex_u,tmp.tex_v).color[k];
+				tmp.I[k]*=res.color[k];
 			}
 		}
 		mergeBuffer(x,y,tmp);
@@ -1022,6 +1000,8 @@ void myRenderer::subRasterization(Vertex **v,int x, int y, int ModelVertexIndex[
 		{
 			color[i]+=v[0]->color[i]*c[0]+v[1]->color[i]*c[1]+v[2]->color[i]*c[2];
 		}
+
+		RGBQUAD RGB;
 		
 		RGB.rgbRed=255*color[0];
 		RGB.rgbGreen=255*color[1];

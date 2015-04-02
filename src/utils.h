@@ -116,6 +116,18 @@ inline void operator *= ( IllumWithDepth &v, double c)
 	}
 }
 
+inline void operator += ( IllumWithDepth &v, IllumWithDepth &x)
+{
+	v.depth+=x.depth;
+	v.tex_u+=x.tex_u;
+	v.tex_v+=x.tex_v;
+	for(int i=0;i<3;i++)
+	{
+		v.alpha[i]+=x.alpha[i];
+		v.I[i]+=x.I[i];
+	}
+}
+
 void operator *= (Vertex &v,double c);
 
 

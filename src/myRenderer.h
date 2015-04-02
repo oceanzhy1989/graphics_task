@@ -35,7 +35,7 @@ class myRenderer
 {
 public:
 
-	myRenderer(int winWidth, int winHeight, HDC hDC, int xoffset=0, int yoffset=0);
+	myRenderer(int winWidth, int winHeight, HDC hDC, int xoffset=-3, int yoffset=-3);
 	~myRenderer();
 
 	void setHDC(HDC hDC);
