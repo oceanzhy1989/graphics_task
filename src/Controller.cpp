@@ -16,6 +16,10 @@ Controller::Controller()
 	SisDown=false;
 	DisDown=false;
 	SpaceIsDown=false;
+
+	drawType[0]=FILL | DEPTH_TEST | TEXTURE_MAPPING;
+	drawType[1]=DRAW_BOARDER | DEPTH_TEST | TEXTURE_MAPPING;
+	currentType=0;
 }
 
 Controller::~Controller()
@@ -31,6 +35,7 @@ void Controller::init(int winWidth, int winHeight, HDC hdc)
 		ren=new myRenderer(winWidth,winHeight,hdc);
 
 		ren->SetOptions(FILL | DEPTH_TEST | TEXTURE_MAPPING);
+		//ren->SetOptions(DRAW_BOARDER | DEPTH_TEST | TEXTURE_MAPPING);
 		ren->loadNewTexture("data/grass.bmp");
 
 		Material m1;
@@ -63,14 +68,14 @@ void Controller::init(int winWidth, int winHeight, HDC hdc)
 				texv3.triangle_count=0;
 				texv3.tex_id=0;
 				texv3.tex_coord.u=0.451+delt+(i%8)*delt;
-				texv3.tex_coord.v=0.451+delt+(j%8)*delt;
+				texv3.tex_coord.v=0.451-delt+(j%8)*delt;
 				texv3.mat=m1;
 				texv3.pos=Vector(rectsize*(i+1),rectsize*(j-1),-10);
 
 				texv4.triangle_count=0;
 				texv4.tex_id=0;
 				texv4.tex_coord.u=0.451+(i%8)*delt;
-				texv4.tex_coord.v=0.451+delt+(j%8)*delt;
+				texv4.tex_coord.v=0.451-delt+(j%8)*delt;
 				texv4.mat=m1;
 				texv4.pos=Vector(rectsize*i,rectsize*(j-1),-10);
 
@@ -179,6 +184,12 @@ void Controller::mouseMove(LPARAM lParam)
 void Controller::scrollCamera(int dist)
 {
 	ren->getCamera()->drawBack(dist);
+}
+
+void Controller::switchDrawType()
+{
+	currentType=1-currentType;
+	ren->SetOptions(drawType[currentType]);
 }
 
 void Controller::display()

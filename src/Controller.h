@@ -21,6 +21,7 @@ public:
 	void setMouseState(int button, bool state, LPARAM lParam);
 	void mouseMove(LPARAM lParam);
 	void scrollCamera(int dist);
+	void switchDrawType();
 
 	
 
@@ -35,6 +36,9 @@ private:
 	bool rButtonIsDown;
 	int old_mouseX,old_mouseY;
 	int mouseX,mouseY;
+
+	int drawType[2];
+	int currentType;
 
 	myRenderer *ren;
 

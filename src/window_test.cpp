@@ -203,6 +203,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				mycontroller.setKeyState('S',true);
 				mycontroller.display();
 				break;
+
+			case 'B':
+				mycontroller.switchDrawType();
+				mycontroller.display();
+				break;
  
 			case VK_SPACE: 
 				mycontroller.setKeyState(VK_SPACE,true);

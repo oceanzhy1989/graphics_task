@@ -165,9 +165,19 @@ int myRenderer::subcut(int bound_id, int rcode[])
 
 			if(t_near>0 && t_near<1)
 			{
+				IllumWithDepth ilstart(*vstart,vstart->pos.a[2],1/(vstart->pos.a[2]-z0));
+				IllumWithDepth ilend(*vend,vend->pos.a[2],1/(vend->pos.a[2]-z0));
 				vresult[resnum]=&ProjectionVertice[tmpVertNum];
-				*(vresult[resnum])=(1-t_near)/(vstart->pos.a[2]-z0)*(*vstart)+t_near/(vend->pos.a[2]-z0)*(*vend);
-				*(vresult[resnum])*=z0/(vresult[resnum]->pos.a[2]-1);
+				//*(vresult[resnum])=(1-t_near)/(vstart->pos.a[2]-z0)*(*vstart)+t_near/(vend->pos.a[2]-z0)*(*vend);
+				//*(vresult[resnum])*=z0/(vresult[resnum]->pos.a[2]-1);
+				*(vresult[resnum])=(1-t_near)*(*vstart)+t_near*(*vend);
+				IllumWithDepth ilres=(1-t_near)*ilstart+t_near*ilend;
+				ilres*=z0/(ilres.depth-1);
+				vresult[resnum]->pos.a[2]=ilres.depth;
+				vresult[resnum]->tex_coord.u=ilres.tex_u;
+				vresult[resnum]->tex_coord.v=ilres.tex_v;
+				//vresult[resnum]->
+
 
 				resnum++;
 				tmpVertNum++;
@@ -1022,16 +1032,17 @@ void myRenderer::Rasterization(const Triangle &t)
 	int Index[3];
 
 	int label=0;
+	int label1=0;
 	if(v0.pos.a[0] > v1.pos.a[0])
 		label++;
+	else
+		label1++;
+
 	if(v0.pos.a[0] > v2.pos.a[0])
 		label++;
 	v[label]=&v0;
 	Index[label]=t.vert[0];
 
-	int label1=0;
-	if(v1.pos.a[0] > v0.pos.a[0])
-		label1++;
 	if(v1.pos.a[0] > v2.pos.a[0])
 		label1++;
 	v[label1]=&v1;
