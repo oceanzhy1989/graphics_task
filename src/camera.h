@@ -20,6 +20,7 @@ public:
 
 	Vector4 getPosition();
 	void setPosition(const Vector4 &pos);
+	void setTmpZ0(double z);
 	void lookAt(const Vector4 &viewDirection);
 
 	//rotate针对世界坐标系
@@ -37,6 +38,10 @@ public:
 	inline double getZ0()
 	{
 		return z0;
+	}
+	inline double getTmpZ0()
+	{
+		return tmp_screen_z-focalLength;
 	}
 	inline double getFocalLength()
 	{
@@ -59,6 +64,7 @@ private:
 	double screenHeight;
 
 	double z0;
+	double tmp_screen_z;
 
 	double scale;
 };

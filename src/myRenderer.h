@@ -17,6 +17,7 @@ enum RenderOptions
 	DEPTH_TEST=1<<2,
 	ENABLE_A_BUFFER=1<<3,
 	TEXTURE_MAPPING=1<<4,
+	ENABLE_FOG=1<<5,
 	
 
 };
@@ -30,6 +31,8 @@ struct InterpolateTriInfo
 	double y_gain[3];
 
 };
+
+const double fogLight[3]={0.9,0.85,0.7};
 
 class myRenderer
 {
@@ -75,6 +78,7 @@ private:
 
 private:
 
+	double scale;
 	int width,height;
 	int halfwidth,halfheight;
 	double cut_bound[6];

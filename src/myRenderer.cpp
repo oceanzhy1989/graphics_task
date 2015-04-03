@@ -9,17 +9,18 @@ const int bit[6]={1,1<<1,1<<2,1<<3,1<<4,1<<5};
 
 myRenderer::myRenderer(int winWidth, int winHeight, HDC hDC, int xoffset, int yoffset) : options(DRAW_BOARDER),m_hdc(hDC),xoff(xoffset),yoff(yoffset)
 {
-	width=winWidth;
-	height=winHeight;
+	scale=1;//1/max(winWidth,winHeight);
+	width=winWidth/scale;
+	height=winHeight/scale;
 	halfwidth=width/2;
 	halfheight=height/2;
 	
 
-	m_camera=new Camera(0,winWidth,winHeight,max(winWidth,winHeight));
+	m_camera=new Camera(0,width,height,max(width,height));
 	double z0=m_camera->getZ0();
 	cut_bound[0]=2-halfwidth;cut_bound[3]=halfwidth-2;
 	cut_bound[1]=3-halfheight;cut_bound[4]=halfheight-3;
-	cut_bound[2]=z0+(halfwidth>>1);cut_bound[5]=z0+(width<<2);
+	cut_bound[2]=z0+200;cut_bound[5]=z0+10000;
 
 	m_ModelViewMatrix=m_camera->getModelViewMatrix();
 	m_ProjectionMatrix=m_camera->getProjectionMatrix();
@@ -131,7 +132,7 @@ int myRenderer::subcut(int bound_id, int rcode[])
 			v[i]->triangle_count=modelVertice[t.vert[i]].triangle_count;
 		}
 
-		double z0=getCamera()->getZ0();
+		double z0=getCamera()->getTmpZ0();
 		int sign=bound_id>2?-1:1;
 		int subrcode[3];//={rcode[0]&bit[bound_id], rcode[1]&bit[bound_id], rcode[2]&bit[bound_id] };
 		for(int i=0;i<3;i++)
@@ -243,7 +244,7 @@ int myRenderer::cut(const Triangle &t, double z_front, double z_back)
 {
 	Vertex *v[3]={&ProjectionVertice[t.vert[0]],&ProjectionVertice[t.vert[1]],&ProjectionVertice[t.vert[2]]};
 
-	double z0=getCamera()->getZ0();
+	double z0=getCamera()->getTmpZ0();
 
 	unsigned char rcode[3]={
 		(sgn(-halfwidth-v[0]->pos.a[0])*bit[0]) | (sgn(v[0]->pos.a[0]-halfwidth)*bit[1]) | (sgn(-halfheight-v[0]->pos.a[1])*bit[2]) | (sgn(v[0]->pos.a[1]-halfheight)*bit[3]) | (sgn(z_front+z0-v[0]->pos.a[2])*bit[4]) | (sgn(v[0]->pos.a[2]-z_back-z0)*bit[5]),
@@ -265,7 +266,7 @@ int myRenderer::cut(const Triangle &t, double z_front, double z_back)
 			v[i]->triangle_count=modelVertice[t.vert[i]].triangle_count;
 		}
 		
-		double z0=getCamera()->getZ0();
+		double z0=getCamera()->getTmpZ0();
 		Vertex *vresult=&ProjectionVertice[0];
 		int resnum=0;
 		for(int i=0;i<3;i++)
@@ -350,9 +351,9 @@ int myRenderer::Render()
 	
 
 	int tri_count=modelTriangles.size();
-	double z0=getCamera()->getZ0();
-	cut_bound[2]=z0+(halfwidth>>1);
-	cut_bound[5]=z0+(width<<2);
+	double z0=getCamera()->getTmpZ0();
+	cut_bound[2]=z0+200;
+	cut_bound[5]=z0+10000;
 	Triangle *triangle;
 
 	if(options & DRAW_BOARDER)
@@ -450,6 +451,14 @@ int myRenderer::Render()
 				{
 					IllumWithDepth *b=bufferMap_single+i+j*width;					
 
+					if(options & ENABLE_FOG)
+					{
+						double coe=exp(-(b->depth-z0)/5000);
+						for(int i=0;i<3;i++)
+						{
+							b->I[i]=b->I[i]*coe+fogLight[i]*(1-coe);
+						}
+					}
 					RGBQUAD RGB;
 					RGB.rgbBlue=b->I[2]*255;
 					RGB.rgbGreen=b->I[1]*255;
@@ -978,7 +987,7 @@ void myRenderer::subRasterization(Vertex **v,int x, int y, int ModelVertexIndex[
 
 	if(options & DEPTH_TEST)
 	{
-		double z0=getCamera()->getZ0();
+		double z0=getCamera()->getTmpZ0();
 		double coe[3]={1/(v[0]->pos.a[2]-z0),1/(v[1]->pos.a[2]-z0),1/(v[2]->pos.a[2]-z0)};
 	
 		IllumWithDepth tmp(modelVertice[ModelVertexIndex[0]],v[0]->pos.a[2],coe[0]);

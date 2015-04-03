@@ -169,7 +169,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		hdc = BeginPaint(hWnd, &ps);
 		GetClientRect(hWnd, &rt);
 
-		mycontroller.init(rt.right-rt.left,rt.bottom-rt.top,hdc);
+		mycontroller.init(rt.right-rt.left+4,rt.bottom-rt.top+7,hdc);
 
 		mycontroller.setDC(GetDC(hWnd));
 		mycontroller.display();

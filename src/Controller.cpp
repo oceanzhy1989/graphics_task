@@ -34,7 +34,7 @@ void Controller::init(int winWidth, int winHeight, HDC hdc)
 	{
 		ren=new myRenderer(winWidth,winHeight,hdc);
 
-		ren->SetOptions(FILL | DEPTH_TEST | TEXTURE_MAPPING);
+		ren->SetOptions(FILL | DEPTH_TEST | TEXTURE_MAPPING | ENABLE_FOG);
 		//ren->SetOptions(DRAW_BOARDER | DEPTH_TEST | TEXTURE_MAPPING);
 		ren->loadNewTexture("data/grass.bmp");
 
@@ -47,9 +47,9 @@ void Controller::init(int winWidth, int winHeight, HDC hdc)
 		double delt=0.049;
 		double rectsize=50;
 		int t_id=0;
-		for(int i=-20;i<20;i++)
+		for(int i=-100;i<100;i++)
 		{
-			for(int j=-20;j<20;j++)
+			for(int j=-100;j<100;j++)
 			{
 				texv1.triangle_count=0;
 				texv1.tex_id=0;
@@ -186,6 +186,37 @@ void Controller::scrollCamera(int dist)
 	ren->getCamera()->drawBack(dist);
 }
 
+void Controller::correctCamera()
+{
+	double role_height=30;
+
+	Vector cam_pos=ren->getCamera()->getPosition();
+
+	if(cam_pos.a[2]<role_height)
+	{
+		cam_pos.a[2]=role_height;
+		ren->getCamera()->setPosition(cam_pos);
+	}
+
+	double z0=ren->getCamera()->getZ0();
+	Vector eyePos=cam_pos+z0*ren->getCamera()->getFacingDirection();
+
+	double cut_pos=-eyePos.a[2]/(cam_pos.a[2]-eyePos.a[2]);
+	if(cut_pos>0 && cut_pos<1)
+	{
+		double len=norm(cam_pos-eyePos);
+		ren->getCamera()->setTmpZ0(z0+cut_pos*len+1);
+		ren->getCamera()->update();
+	}
+	else
+	{
+		ren->getCamera()->setTmpZ0(z0);
+		ren->getCamera()->update();
+	}
+
+
+}
+
 void Controller::switchDrawType()
 {
 	currentType=1-currentType;
@@ -219,6 +250,8 @@ void Controller::display()
 	{
 		ren->getCamera()->setPosition(pos+Vector(0,0,30));
 	}
+
+	correctCamera();
 
 	//while(1)
 	//{

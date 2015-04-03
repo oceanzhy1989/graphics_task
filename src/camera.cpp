@@ -7,6 +7,7 @@ const Vector4 nz(0,0,1);
 Camera::Camera(double Screen_z, double ScreenWidth, double ScreenHeight, double FocalLength) : m_ProjectionMatrix(ZERO)
 {
 	this->screen_z=Screen_z;
+	this->tmp_screen_z=Screen_z;
 	this->screenWidth=ScreenWidth;
 	this->screenHeight=ScreenHeight;
 	this->focalLength=FocalLength;
@@ -26,19 +27,25 @@ Camera::~Camera()
 	//	delete m_ProjectionMatrix;
 }
 
+void Camera::setTmpZ0(double z)
+{
+	tmp_screen_z=z+focalLength;
+}
+
 void Camera::update()
 {
 	Vector4 minusT=-getPosition();
 	m_ModelViewMatrix=m_CameraMatrix.getRotatePart().T()*Matrix4(TRANSLATE,minusT.a[0],minusT.a[1],minusT.a[2]);
 
 	z0=screen_z-focalLength;
+	double tmpz0=tmp_screen_z-focalLength;
 
 	m_ProjectionMatrix.set(0,0,focalLength);
 	m_ProjectionMatrix.set(1,1,focalLength);
-	m_ProjectionMatrix.set(2,2,screen_z);
+	m_ProjectionMatrix.set(2,2,tmp_screen_z);
 	m_ProjectionMatrix.set(3,2,1);
-	m_ProjectionMatrix.set(2,3,-z0*screen_z);
-	m_ProjectionMatrix.set(3,3,-z0);
+	m_ProjectionMatrix.set(2,3,-tmpz0*tmp_screen_z);
+	m_ProjectionMatrix.set(3,3,-tmpz0);
 
 
 	m_ProjectionMatrix=Matrix4(SCALE,scale)*m_ProjectionMatrix;
@@ -108,12 +115,14 @@ void Camera::roll(double rad)
 void Camera::drawBack(double z)
 {
 	this->screen_z-=z;
+	tmp_screen_z=screen_z;
 	update();
 }
 
 void Camera::goForward(double z)
 {
 	this->screen_z+=z;
+	tmp_screen_z=screen_z;
 	update();
 }
 
